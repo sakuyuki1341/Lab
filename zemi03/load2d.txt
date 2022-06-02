@@ -1,0 +1,40 @@
+# 凡例を外に
+set key right outside
+
+# フォントとその大きさの設定
+set ylabel font 'Arial,35'
+set xlabel font 'Arial,35'
+set tics font 'Arial,30'
+set key font 'Arial,25'
+
+# メモリの位置
+set xtic offset 0,-1
+set ytic offset 0,0
+
+# メモリの間隔
+#set xtics 0.002
+#set ytics 0.5
+
+# グリッドの表示
+set grid
+
+# ラベルの位置
+set xlabel offset 0,-3
+set ylabel offset -12,0
+
+# x軸の余白
+set bmargin 8
+# y軸の余白
+set lmargin 28
+
+# 軸の範囲を設定
+#set xrange [0:0.01]
+#set yrange [-1:1]
+
+
+# 以下で軸名の設定
+set xlabel 'H [kOe]'
+set ylabel 't_{sw} [μs]'
+
+# プロット
+plot "tmp" w lp notitle

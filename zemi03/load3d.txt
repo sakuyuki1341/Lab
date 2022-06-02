@@ -1,0 +1,37 @@
+# 凡例を外に
+set key right outside
+
+# フォントとその大きさの設定
+set ylabel font 'Arial,35'
+set xlabel font 'Arial,35'
+set zlabel font 'Arial,35'
+set tics font 'Arial,25'
+set key font 'Arial,20'
+
+# ラベルの位置
+set xlabel offset 1,-1
+set ylabel offset 0,0
+set zlabel offset -9,0
+
+# 軸の範囲を設定
+#set xrange [-1:1]
+#set yrange [-1:1]
+
+# メモリの間隔
+#set ztics 0.5
+
+# グリッドの表示
+set grid
+
+# x軸の余白
+set bmargin 5
+# y軸の余白
+set lmargin 15
+
+# 以下で軸名の設定
+set xlabel 'm_x'
+set ylabel 'm_y'
+set zlabel 'm_z'
+
+# プロット
+splot "tmp" w lp notitle
