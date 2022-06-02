@@ -1,17 +1,32 @@
 #ifndef SUB_H
 #define SUB_H
 
+struct m_moment {
+	double m[3];
+	double m0[3];
+	double H[3];
+	double H_ef[3];
+	double k1[3];
+	double k2[3];
+	double k3[3];
+	double k4[3];
+};
+typedef struct m_moment M_moment;
+
 int judge_break();
 int init();
 int RK4();
-int Euler(double* kx, double* ky, double* kz);
-int llg(double* kx, double* ky, double* kz, double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int Heff(double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int Hext(double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int HK(double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int HA(double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int HD(double* Hx_ef, double* Hy_ef, double* Hz_ef);
-int vadd(double* mx0, double* my0, double* mz0, double* kx, double* ky, double* kz, double r);
-int vadd4(double* mx0, double* my0, double* mz0, double* k1x, double* k1y, double* k1z, double* k2x, double* k2y, double* k2z, double* k3x, double* k3y, double* k3z, double* k4x, double* k4y, double* k4z);
+int Euler(int target);
+int llg(int target);
+double* k_sub(int i, int target);
+int Heff();
+int Hext();
+int HK();
+int HA();
+int HA_sub(int i, int j, double* mp, double* mm);
+int HD();
+int vadd(int target, double r);
+int vadd4();
+int tester(int argc, char argv[]);
 
 #endif 
