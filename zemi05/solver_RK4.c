@@ -329,3 +329,32 @@ int vadd4(double* mx0, double* my0, double* mz0, double* k1x, double* k1y, doubl
 // ---------------------------------------
 //	出力用関数
 // ---------------------------------------
+int tester(int argc, char argv[]) {
+	int i;
+	for (i = 0; i < argc; i++) {
+		switch (argv[i])
+		{
+		case 'c':
+			printf("      dt = %.8e\n", dt);
+			printf("   alpha = %.8e\n", alpha);
+			printf("   Gamma = %.8e\n", Gamma);
+			printf("       A = %.8e\n", A);
+			printf("      ku = %.8e\n", ku);
+			printf("       M = %.8e\n", M);
+			printf("      lw = %.8e\n", lw);
+			printf("      dx = %.8e\n", dx);
+			printf("     phi = %.8e\n", phi);
+			printf("interval = %.8e\n", interval);
+			printf("   loops = %.8e\n", loops);
+			printf("   plots = %d\n", plots);
+			printf("-----------------------------------------\n");
+			break;
+
+		case 'm':
+			int j;
+			printf("mx my mz:\n");
+			for (j = 0; j < interval*2; j++) {
+				printf("%.6e %.6e %.6e\n", moment[i].m[0], moment[i].m[1], moment[i].m[2]);
+			}
+			printf("-----------------------------------------\n");
+			break;
