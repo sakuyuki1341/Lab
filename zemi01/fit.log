@@ -1,0 +1,36 @@
+
+
+*******************************************************************************
+Mon Apr 25 07:39:52 2022
+
+
+FIT:    data read from "prob5.txt" using 1:2
+        format = x:z
+        #datapoints = 43
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x) = a/x**2 + b
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   a             b            
+   0 4.3161472530e+01   0.00e+00  7.07e-01    1.000000e+00   1.000000e+00
+   5 2.3077390712e-06  -1.34e-03  7.07e-06    5.245101e-01  -9.515039e-05
+
+After 5 iterations the fit converged.
+final sum of squares of residuals : 2.30774e-06
+rel. change during last iteration : -1.34359e-08
+
+degrees of freedom    (FIT_NDF)                        : 41
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.000237247
+variance of residuals (reduced chisquare) = WSSR/ndf   : 5.62863e-08
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+a               = 0.52451          +/- 0.006415     (1.223%)
+b               = -9.51504e-05     +/- 4.34e-05     (45.61%)
+
+correlation matrix of the fit parameters:
+                a      b      
+a               1.000 
+b              -0.552  1.000 

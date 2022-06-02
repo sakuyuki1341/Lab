@@ -1,0 +1,15 @@
+set key right outside
+# 以下で軸名の設定
+set xlabel 'x'
+set ylabel 'T'
+plot "Book1.prn" using 1:2 w lp title '0*dt'
+replot "Book1.prn" using 1:3 w lp title '1*dt'
+replot "Book1.prn" using 1:4 w lp title '2*dt'
+replot "Book1.prn" using 1:5 w lp title '3*dt'
+replot "Book1.prn" using 1:6 w lp title '4*dt'
+replot "Book1.prn" using 1:7 w lp title '5*dt'
+replot "Book1.prn" using 1:8 w lp title '6*dt'
+replot "Book1.prn" using 1:9 w lp title '7*dt'
+replot "Book1.prn" using 1:10 w lp title '8*dt'
+replot "Book1.prn" using 1:11 w lp title '9*dt'
+replot "Book1.prn" using 1:12 w lp title '10*dt'
