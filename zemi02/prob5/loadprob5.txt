@@ -1,0 +1,5 @@
+set key right outside
+# 以下で軸名の設定
+set xlabel 'n'
+set ylabel 'dt'
+plot "prob5.txt" using 1:2 notitle
