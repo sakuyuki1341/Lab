@@ -7,12 +7,6 @@
 
 M_moment moment[1024];
 
-double mx[1024];
-double my[1024];
-double mz[1024];
-double Hx[1024];
-double Hy[1024];
-double Hz[1024];
 double dt = 0;
 double alpha = 0;
 double Gamma = 0;
@@ -23,6 +17,7 @@ double lw = 0;
 double dx = 0;
 double phi = 0;
 double interval = 0;
+double region = 0;
 double loops = 0;
 int plots = 0;
 
@@ -35,7 +30,7 @@ int main(int argc, char *argv[]) {
 
 	// 初期条件設定
 	int i = 0;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		double x = ((double)i-interval)*dx + dx/2;
 		double theta = 2*atan2(exp(M_PI*x/lw), 1);
 
@@ -57,7 +52,7 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		double x = ((double)i-interval)*dx + dx/2;
 		double theta = acos(moment[i].m[2]);
 		//printf("%.8lf %lf\n", x, theta);
@@ -85,13 +80,13 @@ int judge_break() {
 	static double avgLast = 0;
 	static int count = 0;
 	int i;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		// 可読性のため一時的に別変数へ
 		double* m = moment[i].m;
 		double* H_ef = moment[i].H_ef;
 		avgTmp += m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
 	}
-	avgTmp = avgTmp/(interval*2);
+	avgTmp = avgTmp/(interval*region);
 	count += 1;
 
 	if(IsFirst) {
@@ -156,6 +151,9 @@ int init() {
 		case 'i':
 			sscanf(line, "%s %lf", str, &interval);
 			break;
+		case 'r':
+			sscanf(line, "%s %lf", str, &region);
+			break;
 		case 'l':
 			sscanf(line, "%s %lf", str, &loops);
 			break;
@@ -175,7 +173,7 @@ int init() {
 // ---------------------------------------
 int RK4() {
 	int i, j;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		for (j = 0; j < 3; j++) {
 			moment[i].m0[j] = moment[i].m[j];
 		}
@@ -201,7 +199,7 @@ int Euler(int target) {
 
 int llg(int target) {
 	int i;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		double* k = k_sub(i, target);
 		double* m = moment[i].m;
 		double* H_ef = moment[i].H_ef;
@@ -247,7 +245,7 @@ int Heff() {
 
 int Hext() {
 	int i, j;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		for (j = 0; j < 3; j++) {
 			moment[i].H_ef[j] = 0;
 		}
@@ -257,7 +255,7 @@ int Hext() {
 
 int HK() {
 	int i;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		moment[i].H_ef[2] += 2 * ku * moment[i].m[2] / M;
 	}
 	return 0;
@@ -266,7 +264,7 @@ int HK() {
 int HA() {
 	int i, j;
 	double mp, mm;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		for (j = 0; j < 3; j++) {
 			HA_sub(i, j, &mp, &mm);
 			moment[i].H_ef[j] += 2*A*(mp - 2*moment[i].m[j] + mm) / (M*dx*dx);
@@ -282,7 +280,7 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 		if (j == 2) {
 			*mm = 1;
 		}
-	} else if (i == interval*2 - 1) {
+	} else if (i == interval*region - 1) {
 		*mp = 0;
 		*mm = moment[i-1].m[j];
 		if (j == 2) {
@@ -297,7 +295,7 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 
 int HD() {
 	int i;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		moment[i].H_ef[0] += - 4*M_PI*moment[i].m[0];
 	}
 	return 0;
@@ -309,7 +307,7 @@ int HD() {
 // ---------------------------------------
 int vadd(int target, double r) {
 	int i, j;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		double* k = k_sub(i, target);
 		for (j = 0; j < 3; j++) {
 			moment[i].m[j] = moment[i].m0[j] + k[j]*r;
@@ -325,7 +323,7 @@ int vadd(int target, double r) {
 
 int vadd4() {
 	int i, j;
-	for (i = 0; i < interval*2; i++) {
+	for (i = 0; i < interval*region; i++) {
 		double* k1 = moment[i].k1;
 		double* k2 = moment[i].k2;
 		double* k3 = moment[i].k3;
@@ -382,7 +380,7 @@ int tester(int argc, char* argv) {
 
 		case 'm':
 			printf("mx my mz:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].m[0], moment[j].m[1], moment[j].m[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -390,7 +388,7 @@ int tester(int argc, char* argv) {
 
 		case 'H':
 			printf("Hx Hy Hz:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].H[0], moment[j].H[1], moment[j].H[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -398,7 +396,7 @@ int tester(int argc, char* argv) {
 
 		case 'e':
 			printf("Hx_ef Hy_ef Hz_ef:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].H_ef[0], moment[j].H_ef[1], moment[j].H_ef[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -406,7 +404,7 @@ int tester(int argc, char* argv) {
 
 		case '1':
 			printf("k1x k1y k1z:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k1[0], moment[j].k1[1], moment[j].k1[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -414,7 +412,7 @@ int tester(int argc, char* argv) {
 
 		case '2':
 			printf("k2x k2y k2z:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k2[0], moment[j].k2[1], moment[j].k2[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -422,7 +420,7 @@ int tester(int argc, char* argv) {
 
 		case '3':
 			printf("k3x k3y k3z:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k3[0], moment[j].k3[1], moment[j].k3[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -430,7 +428,7 @@ int tester(int argc, char* argv) {
 
 		case '4':
 			printf("k4x k4y k4z:\n");
-			for (j = 0; j < interval*2; j++) {
+			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k4[0], moment[j].k4[1], moment[j].k4[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -441,3 +439,7 @@ int tester(int argc, char* argv) {
 		}
 	}
 }
+
+// ---------------------------------------
+//	入力用関数
+// ---------------------------------------
