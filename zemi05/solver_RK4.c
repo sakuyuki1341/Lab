@@ -37,7 +37,6 @@ int main(int argc, char *argv[]) {
 	}
 
 	// 平衡状態計算
-	int i, t;
 	if ((argc == 2) && (strcmp(argv[1], "save") == 0)) {
 	//平衡状態セーブ
 		// 初期条件設定
@@ -71,29 +70,34 @@ int main(int argc, char *argv[]) {
 		printf("data is loaded\n");
 	}
 
-	// θの出力用
-	for (i = 0; i < interval*region; i++) {
-		double x = ((double)i-interval)*dx + dx/2;
-		double theta = acos(moment[i].m[2]);
-		//printf("%.8lf %lf\n", x, theta);
-	}
-	//printf("---------------------------------\n");
+	printf("mid: %.6e\n", mid_x());
 
 	char for_tester = 'm';
 	tester(1, &for_tester);
+/*
+	// 平衡状態から計算
+	double before_mid_x = 0;
+	for (t = 0; t < loops; t++) {
+		RK4();
 
-	// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
-	double grad = (acos(moment[(int)interval].m[2]) -acos(moment[(int)interval-1].m[2]))/dx;
-	double simlw = M_PI/grad;
-	//printf("   lw = %.12lf\n", lw);
-	//printf("simlw = %.12lf\n", simlw);
+		// 速度計算
+
+
+		// 収束判定
+		if (judge_break2()) {
+			break;
+		} else if (t == loops) {
+			printf("timeout\n");
+		}
+	}
+*/
 	return 0;
 }
 
 // ---------------------------------------
 // 収束判定
 // ---------------------------------------
-int judge_break() {
+int judge_break1() {
 	static bool IsFirst = true;
 	double avgTmp = 0;
 	static double avgFirst = 0;
@@ -367,6 +371,22 @@ int vadd4() {
 
 
 // ---------------------------------------
+//	各種値を返す関数
+// ---------------------------------------
+
+// 磁壁の中心の座標を返す関数
+double mid_x() {
+	int i;
+	for (i = 0; i < interval*region; i++) {
+		if (moment[i].m[2] < 0) {
+			//printf("k: %.6e\nl: %.6e\n", moment[i-1].x, moment[i].x);
+			return moment[i].x - dx * fabs(moment[i].m[2])/(fabs(moment[i].m[2])+moment[i-1].m[2]);
+		}
+	}
+}
+
+
+// ---------------------------------------
 //	出力用関数
 // ---------------------------------------
 
@@ -458,6 +478,7 @@ int tester(int argc, char* argv) {
 			printf("-----------------------------------------\n");
 			break;
 
+/*	調整中
 		case 't':
 			printf("x, theta:\n");
 			for (i = 0; i < interval*region; i++) {
@@ -468,7 +489,7 @@ int tester(int argc, char* argv) {
 			printf("-----------------------------------------\n");
 			break;
 
-		case 'l':
+		case 'l':;
 			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
 			double grad = (acos(moment[(int)interval].m[2]) -acos(moment[(int)interval-1].m[2]))/dx;
 			double simlw = M_PI/grad;
@@ -476,6 +497,7 @@ int tester(int argc, char* argv) {
 			printf("simlw = %.12lf\n", simlw);
 			printf("-----------------------------------------\n");
 			break;
+*/
 
 		default:
 			break;

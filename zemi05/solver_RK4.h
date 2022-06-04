@@ -28,6 +28,7 @@ int HA_sub(int i, int j, double* mp, double* mm);
 int HD();
 int vadd(int target, double r);
 int vadd4();
+double mid_x();
 int tester(int argc, char argv[]);
 int save_data(char* filename);
 int load_data(char* filename);
