@@ -9,6 +9,8 @@
 #|interval 10			|
 #|loops 1.0e4			|
 #|prots 25				|
+#|region 2				|
+#|z_H 0					|
 #------------------------
 # 注1: 区切り文字はスペース
 
@@ -22,3 +24,4 @@ interval 10
 loops 1.0e5
 prots 25
 region 2
+z_H 0

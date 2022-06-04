@@ -28,5 +28,7 @@ int HD();
 int vadd(int target, double r);
 int vadd4();
 int tester(int argc, char argv[]);
+int save_data(char* filename);
+int load_data(char* filename);
 
 #endif 

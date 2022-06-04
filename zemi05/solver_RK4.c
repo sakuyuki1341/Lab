@@ -19,6 +19,7 @@ double phi = 0;
 double interval = 0;
 double region = 0;
 double loops = 0;
+double Hz = 0;
 int plots = 0;
 
 int main(int argc, char *argv[]) {
@@ -28,30 +29,41 @@ int main(int argc, char *argv[]) {
 	dx = lw/interval;
 	phi = M_PI/2;
 
-	// 初期条件設定
-	int i = 0;
-	for (i = 0; i < interval*region; i++) {
-		double x = ((double)i-interval)*dx + dx/2;
-		double theta = 2*atan2(exp(M_PI*x/lw), 1);
+	int i, t;
+	if ((argc == 2) && (strcmp(argv[1], "save") == 0)) {
+	//平衡状態セーブ
+		// 初期条件設定
+		for (i = 0; i < interval*region; i++) {
+			double x = ((double)i-interval)*dx + dx/2;
+			double theta = 2*atan2(exp(M_PI*x/lw), 1);
 
-		moment[i].m[0] = sin(theta)*cos(phi);
-		moment[i].m[1] = sin(theta)*sin(phi);
-		moment[i].m[2] = cos(theta);
-		//printf("%.8lf %lf\n", x, theta);
-	}
-	//printf("---------------------------------\n");
-
-	int t = 0;
-	for (t = 0; t < loops; t++) {
-		if (t == loops) {
-			printf("timeout\n");
+			moment[i].m[0] = sin(theta)*cos(phi);
+			moment[i].m[1] = sin(theta)*sin(phi);
+			moment[i].m[2] = cos(theta);
+			//printf("%.8lf %lf\n", x, theta);
 		}
-		RK4();
-		if (judge_break()) {
-			break;
+		//printf("---------------------------------\n");
+
+		// 平衡状態計算
+		for (t = 0; t < loops; t++) {
+			RK4();
+			// 収束判定
+			if (judge_break()) {
+				break;
+			} else if (t == loops) {
+				printf("timeout\n");
+			}
+			
 		}
+		save_data("data.bin");
+		printf("data is saved\n");
+	}else{
+	// 平衡状態ロード
+		load_data("data.bin");
+		printf("data is loaded\n");
 	}
 
+	// θの出力用
 	for (i = 0; i < interval*region; i++) {
 		double x = ((double)i-interval)*dx + dx/2;
 		double theta = acos(moment[i].m[2]);
@@ -62,7 +74,7 @@ int main(int argc, char *argv[]) {
 	char for_tester = 'm';
 	tester(1, &for_tester);
 
-	// 磁壁の中心を挟む二点から傾きを求める
+	// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
 	double grad = (acos(moment[(int)interval].m[2]) -acos(moment[(int)interval-1].m[2]))/dx;
 	double simlw = M_PI/grad;
 	//printf("   lw = %.12lf\n", lw);
@@ -160,6 +172,9 @@ int init() {
 		case 'p':
 			sscanf(line, "%s %d", str, &plots);
 			break;
+		case 'z':
+			sscanf(line, "%s %d", str, &Hz);
+			break;
 		default:
 			break;
 		}
@@ -246,9 +261,9 @@ int Heff() {
 int Hext() {
 	int i, j;
 	for (i = 0; i < interval*region; i++) {
-		for (j = 0; j < 3; j++) {
-			moment[i].H_ef[j] = 0;
-		}
+		moment[i].H_ef[0] = 0;
+		moment[i].H_ef[1] = 0;
+		moment[i].H_ef[2] = Hz;
 	}
 	return 0;
 }
@@ -440,6 +455,40 @@ int tester(int argc, char* argv) {
 	}
 }
 
+// データファイル書き込み関数
+int save_data(char* filename) {
+	FILE *to;
+	double buf[3072];
+	int i, j;
+	for (i = 0; i < interval*region; i++) {
+		for (j = 0; j < 3; j++) {
+			buf[3*i + j] = moment[i].m[j];
+		}
+	}
+
+	to = fopen(filename, "wb");
+	fwrite(buf, sizeof(double), 3072, to);
+	fclose(to);
+
+	return 0;
+}
+
 // ---------------------------------------
 //	入力用関数
 // ---------------------------------------
+// データファイル読み込み関数
+int load_data(char* filename) {
+	FILE *from;
+	double buf[3072];
+	from = fopen(filename, "rb");
+	fread(buf, sizeof(double), 3072, from);
+	fclose(from);
+	
+	int i, j;
+	for (i = 0; i < interval*region; i++) {
+		for (j = 0; j < 3; j++) {
+			moment[i].m[j] = buf[3*i + j];
+		}
+	}
+	return 0;
+}
