@@ -10,10 +10,11 @@ struct m_moment {
 	double k2[3];
 	double k3[3];
 	double k4[3];
+	double x;
 };
 typedef struct m_moment M_moment;
 
-int judge_break();
+int judge_break1();
 int init();
 int RK4();
 int Euler(int target);

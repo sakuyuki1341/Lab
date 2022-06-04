@@ -25,9 +25,16 @@ int plots = 0;
 int main(int argc, char *argv[]) {
 	init();
 
+	int i, t;
 	lw = M_PI * sqrt(A/ku);
 	dx = lw/interval;
 	phi = M_PI/2;
+
+	// xの値の計算
+	for (i = 0; i < (interval*region)/2; i++) {
+		moment[i].x = -((interval*region)/2 - (1+i))*dx - dx/2;
+		moment[(int)interval*(int)region-i-1].x = -moment[i].x;
+	}
 
 	// 平衡状態計算
 	int i, t;
@@ -35,9 +42,7 @@ int main(int argc, char *argv[]) {
 	//平衡状態セーブ
 		// 初期条件設定
 		for (i = 0; i < interval*region; i++) {
-			double x = ((double)i-interval)*dx + dx/2;
-			double theta = 2*atan2(exp(M_PI*x/lw), 1);
-
+			double theta = 2*atan2(exp(M_PI * moment[i].x/lw), 1);
 			moment[i].m[0] = sin(theta)*cos(phi);
 			moment[i].m[1] = sin(theta)*sin(phi);
 			moment[i].m[2] = cos(theta);
@@ -49,7 +54,7 @@ int main(int argc, char *argv[]) {
 		for (t = 0; t < loops; t++) {
 			RK4();
 			// 収束判定
-			if (judge_break()) {
+			if (judge_break1()) {
 				break;
 			} else if (t == loops) {
 				printf("timeout\n");
@@ -58,7 +63,7 @@ int main(int argc, char *argv[]) {
 		}
 		save_data("data.bin");
 		printf("data is saved\n");
-		printf("平衡状態の計算が終わったため、計算を終了します\n");
+		printf("calculate ended\n");
 		return 0;
 	}else{
 	// 平衡状態ロード
@@ -249,6 +254,7 @@ double* k_sub(int i, int target) {
 		break;
 	}
 }
+
 
 // ---------------------------------------
 //	H に関する計算
