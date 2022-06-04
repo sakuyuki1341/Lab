@@ -29,6 +29,7 @@ int main(int argc, char *argv[]) {
 	dx = lw/interval;
 	phi = M_PI/2;
 
+	// 平衡状態計算
 	int i, t;
 	if ((argc == 2) && (strcmp(argv[1], "save") == 0)) {
 	//平衡状態セーブ
@@ -57,6 +58,8 @@ int main(int argc, char *argv[]) {
 		}
 		save_data("data.bin");
 		printf("data is saved\n");
+		printf("平衡状態の計算が終わったため、計算を終了します\n");
+		return 0;
 	}else{
 	// 平衡状態ロード
 		load_data("data.bin");
@@ -446,6 +449,25 @@ int tester(int argc, char* argv) {
 			for (j = 0; j < interval*region; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k4[0], moment[j].k4[1], moment[j].k4[2]);
 			}
+			printf("-----------------------------------------\n");
+			break;
+
+		case 't':
+			printf("x, theta:\n");
+			for (i = 0; i < interval*region; i++) {
+				double x = ((double)i-interval)*dx + dx/2;
+				double theta = acos(moment[i].m[2]);
+				printf("%.8lf %lf\n", x, theta);
+			}
+			printf("-----------------------------------------\n");
+			break;
+
+		case 'l':
+			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
+			double grad = (acos(moment[(int)interval].m[2]) -acos(moment[(int)interval-1].m[2]))/dx;
+			double simlw = M_PI/grad;
+			printf("   lw = %.12lf\n", lw);
+			printf("simlw = %.12lf\n", simlw);
 			printf("-----------------------------------------\n");
 			break;
 
