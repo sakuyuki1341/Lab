@@ -20,6 +20,7 @@ double interval = 0;
 double region = 0;
 double loops = 0;
 double Hz = 0;
+double before_mid = 0;
 int plots = 0;
 
 int main(int argc, char *argv[]) {
@@ -48,6 +49,8 @@ int main(int argc, char *argv[]) {
 			//printf("%.8lf %lf\n", x, theta);
 		}
 		//printf("---------------------------------\n");
+		char for_tester = 'm';
+		tester(1, &for_tester);
 
 		// 平衡状態計算
 		for (t = 0; t < loops; t++) {
@@ -69,28 +72,30 @@ int main(int argc, char *argv[]) {
 		load_data("data.bin");
 		printf("data is loaded\n");
 	}
+	printf("x = %.6e\n", calc_mid());
 
-	printf("mid: %.6e\n", mid_x());
 
-	char for_tester = 'm';
-	tester(1, &for_tester);
-/*
 	// 平衡状態から計算
-	double before_mid_x = 0;
+	before_mid = calc_mid();
+	double first_mid = before_mid;
 	for (t = 0; t < loops; t++) {
 		RK4();
+		// 出力
 
-		// 速度計算
-
+		if (t%plots == 0) {
+			print_v(t*dt);
+			//printf("x = %.6e\n", calc_mid());
+		}
 
 		// 収束判定
 		if (judge_break2()) {
-			break;
+			//break;
 		} else if (t == loops) {
 			printf("timeout\n");
 		}
+
+		before_mid = calc_mid();
 	}
-*/
 	return 0;
 }
 
@@ -131,6 +136,20 @@ int judge_break1() {
 		}
 	}
 }
+
+int judge_break2() {
+	static double max_v = 0;
+	double v = calc_v();
+	if (max_v < v) {
+		max_v = v;
+	} else if (v < max_v/2) {
+		return 1;
+	} else {
+		;
+	}
+	return 0;
+}
+
 
 // ---------------------------------------
 //	初期設定
@@ -185,7 +204,7 @@ int init() {
 			sscanf(line, "%s %d", str, &plots);
 			break;
 		case 'z':
-			sscanf(line, "%s %d", str, &Hz);
+			sscanf(line, "%s %lf", str, &Hz);
 			break;
 		default:
 			break;
@@ -375,7 +394,7 @@ int vadd4() {
 // ---------------------------------------
 
 // 磁壁の中心の座標を返す関数
-double mid_x() {
+double calc_mid() {
 	int i;
 	for (i = 0; i < interval*region; i++) {
 		if (moment[i].m[2] < 0) {
@@ -383,6 +402,13 @@ double mid_x() {
 			return moment[i].x - dx * fabs(moment[i].m[2])/(fabs(moment[i].m[2])+moment[i-1].m[2]);
 		}
 	}
+}
+
+// 前回の位置と、今回の位置から速度を求める関数
+double calc_v() {
+	double now_mid = calc_mid();
+	double v = (now_mid - before_mid)/dt;
+	return v;
 }
 
 
@@ -418,6 +444,7 @@ int tester(int argc, char* argv) {
 			printf("     phi = %.8e\n", phi);
 			printf("interval = %.8e\n", interval);
 			printf("   loops = %.8e\n", loops);
+			printf("      Hz = %.8e\n", Hz);
 			printf("   plots = %d\n", plots);
 			printf("-----------------------------------------\n");
 			break;
@@ -503,6 +530,19 @@ int tester(int argc, char* argv) {
 			break;
 		}
 	}
+}
+
+// vの時間経過観察用
+int print_v(double t) {
+	static int IsFirst = 1;
+	if (IsFirst) {
+		printf("t v:\n");
+		printf("%.6e %.6e\n", t, calc_v());
+		IsFirst = 0;
+	} else {
+		printf("%.6e %.6e\n", t, calc_v());
+	}
+	return 0;
 }
 
 // データファイル書き込み関数

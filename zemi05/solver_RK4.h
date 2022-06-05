@@ -15,6 +15,7 @@ struct m_moment {
 typedef struct m_moment M_moment;
 
 int judge_break1();
+int judge_break2();
 int init();
 int RK4();
 int Euler(int target);
@@ -28,8 +29,10 @@ int HA_sub(int i, int j, double* mp, double* mm);
 int HD();
 int vadd(int target, double r);
 int vadd4();
-double mid_x();
+double calc_mid();
+double calc_v();
 int tester(int argc, char argv[]);
+int print_v(double t);
 int save_data(char* filename);
 int load_data(char* filename);
 

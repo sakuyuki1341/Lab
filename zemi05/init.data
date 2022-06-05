@@ -22,6 +22,6 @@ ku 10000
 M 14
 interval 10
 loops 1.0e5
-prots 25
+prots 1000
 region 10
-z_H 0
+z_H 10
