@@ -90,7 +90,8 @@ int main(int argc, char *argv[]) {
 		// 収束判定
 		if (judge_break2()) {
 			//break;
-		} else if (t == loops) {
+		} else if (t == loops-1) {
+			print_v(t*dt);
 			printf("timeout\n");
 		}
 
@@ -536,11 +537,11 @@ int tester(int argc, char* argv) {
 int print_v(double t) {
 	static int IsFirst = 1;
 	if (IsFirst) {
-		printf("t v:\n");
-		printf("%.6e %.6e\n", t, calc_v());
+		printf("t(μs) v(cm/s):\n");
+		printf("%.6e %.6e\n", t*1e9, calc_v());
 		IsFirst = 0;
 	} else {
-		printf("%.6e %.6e\n", t, calc_v());
+		printf("%.6e %.6e\n", t*1e9, calc_v());
 	}
 	return 0;
 }
