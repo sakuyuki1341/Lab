@@ -13,7 +13,7 @@ set xtic offset 0,-1
 set ytic offset 0,0
 
 # メモリの間隔
-set xtics 25
+#set xtics 25
 #set ytics 2e-12
 
 # グリッドの表示
