@@ -52,9 +52,11 @@
 \section{原理}
 \subsection{1次元Bloch磁壁}
 磁壁とは、磁気モーメントの向きが真反対を向いている磁区間にある、磁気モーメントが徐々に逆になっていく区間を指す。
-
 また、1次元Bloch磁壁の磁化構造はx座標にのみ依存し、yおよびz方向に対しては同じ構造が無限遠方まで続いていると考える。
-この場合、磁気モーメントに加わる静磁界は式\ref{00}で表される。
+
+\subsection{静磁界}
+Bloch磁壁の特徴から、
+磁気モーメントに加わる静磁界は式\ref{00}で表される。
 \begin{equation}
 	\vec{H}^D (x) = 
 	\begin{pmatrix}
@@ -64,7 +66,6 @@
 	\end{pmatrix}
 	\label{00}
 \end{equation}
-さらに、隣接する原子磁気モーメント間には交換エネルギーが加わる。
 
 
 \subsection{交換磁界}
@@ -89,9 +90,9 @@
 	\label{03}
 	\vec{H}^A = \frac{2A}{M \delta x^2}
 	\begin{pmatrix}
-		m_(x_(i+1)) - 2m_(x_i) + m_(x_(i-1))\\
-		m_(y_(i+1)) - 2m_(y_i) + m_(y_(i-1))\\
-		m_(z_(i+1)) - 2m_(z_i) + m_(z_(i-1))
+		m_{x_{i+1}} - 2m_{x_i} + m_{x_{i-1}}\\
+		m_{y_{i+1}} - 2m_{y_i} + m_{y_{i-1}}\\
+		m_{z_{i+1}} - 2m_{z_i} + m_{z_{i-1}}
 	\end{pmatrix} 
 \end{equation}
 と表される。
@@ -107,15 +108,15 @@
 さらに、磁気モーメントを極座標で表したとき、磁化構造は以下の式\ref{04}, \ref{05}で表される。
 \begin{equation}
 	\label{04}
-	\phi(x) = const(=\pm \frac{\pi}{2})
+	\varphi(x) = \mathrm{const}(=\pm \frac{\pi}{2})
 \end{equation}
 \begin{equation}
 	\label{05}
-	\theta(x) = 2\tan ^(-1) (\exp(\frac{\pi x}{l_w}))
+	\theta(x) = 2\tan ^{-1} (\exp\frac{\pi x}{l_w})
 \end{equation}
 ここで、$l_w$は磁壁の厚さを表す定数となり、$l_w=\pi\sqrt{A/K_u}$となる。
 
-\subsection{問題}
+\section{問題}
 問題内容は4次のルンゲクッタ法を用いてLLG方程式を解くプログラムを作成し、1次元Bloch磁壁の磁化構造を求めることとなる。
 なお、材料定数および、各種初期値は以下のようになる。
 \begin{itemize}
@@ -124,7 +125,7 @@
  \item 異方性定数$K_u = 10000\;\mathrm{erg/cm^3}$
  \item 損失定数$\alpha = 0.14$
  \item 磁気回転比$\lvert\gamma\rvert = 1.76\times 10^7\;\mathrm{rad/(s\cdot Oe)}$
- \item 時間刻み$\mathrm{dt} = 0.1\times 10^(-12)\;\mathrm{s}$
+ \item 時間刻み$\mathrm{dt} = 0.1\times 10^{-12}\;\mathrm{s}$
  \item 格子間隔を決定づける変数$\mathrm{interval} = 10$
  \item 計算点数は偶数個。
  \item 磁化構造の初期値は解析解を使用する。
@@ -193,7 +194,7 @@
 
 ただし、このグラフには描画していないが、このグラフに描画されている以上に格子間隔を狭めた場合、
 計算が破綻してしまった。
-なお、今回のシミュレーションで収束した格子間隔の最小値は$0.183974\times 10^{-6}\;\mathrm{cm}$（interval$=54$）であった。
+なお、今回のシミュレーションで収束した格子間隔の最小値は$1.83974\;\mathrm{nm}$（interval$=54$）であった。
 
 \subsection{小問3}
 格子間隔及び時間幅dtを変化させて、計算の安定性を調べる。

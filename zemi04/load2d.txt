@@ -13,18 +13,18 @@ set xtic offset 0,-1
 set ytic offset 0,0
 
 # メモリの間隔
-set xtics 5e-7
-set ytics 2e-12
+set xtics 5
+set ytics 2
 
 # グリッドの表示
 set grid
 
 # ラベルの位置
 set xlabel offset 0,-3
-set ylabel offset -22,0
+set ylabel offset -10,0
 
 # 左の余白
-set lmargin 38
+set lmargin 22
 # 右の余白
 #set rmargin 0
 # 上の余白
@@ -38,8 +38,8 @@ set bmargin 8
 
 
 # 以下で軸名の設定
-set xlabel 'dx [cm]'
-set ylabel 'dt [s]'
+set xlabel 'dx [nm]'
+set ylabel 'dt [ps]'
 
 # プロット
-plot "tmp" w lp title 'Timeout-Line'
+plot "tmp" w lp title 'simlw'
