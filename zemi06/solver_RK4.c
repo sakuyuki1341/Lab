@@ -8,49 +8,52 @@
 M_moment moment[1024];
 
 double dt = 0;
+double dx = 0;
+double dz = 0;
 double alpha = 0;
 double Gamma = 0;
 double A = 0;
 double ku = 0;
 double M = 0;
 double lw = 0;
-double dx = 0;
 double phi = 0;
-double interval = 0;
-double region = 0;
 double loops = 0;
-double Hz = 0;
-double before_mid = 0;
 int plots = 0;
+int n = 0;
+double dn = 0;
+
+double qxx[2047];
+double qxz = 0;
+double qzz[2047];
 
 int main(int argc, char *argv[]) {
+	if(argc < 3) {
+		printf("the option is fault\n");
+	}
 	init();
 
 	int i, t;
-	lw = M_PI * sqrt(A/ku);
-	dx = lw/interval;
-	phi = M_PI/2;
-
-	// xの値の計算
-	for (i = 0; i < (interval*region)/2; i++) {
-		moment[i].x = -((interval*region)/2 - (1+i))*dx - dx/2;
-		moment[(int)interval*(int)region-i-1].x = -moment[i].x;
-	}
-
 	// 平衡状態計算
-	if ((argc == 2) && (strcmp(argv[1], "save") == 0)) {
+	if (strcmp(argv[1], "save") == 0) {
 	//平衡状態セーブ
 		// 初期条件設定
-		for (i = 0; i < interval*region; i++) {
-			double theta = 2*atan2(exp(M_PI * moment[i].x/lw), 1);
-			moment[i].m[0] = sin(theta)*cos(phi);
-			moment[i].m[1] = sin(theta)*sin(phi);
-			moment[i].m[2] = cos(theta);
-			//printf("%.8lf %lf\n", x, theta);
+		for (i = 0; i < n/2; i++) {
+			//myの設定
+			moment[i].m[1] = -(dn/2-(1+(double)i))*(2/dn) - 1/dn;
+			moment[n-i-1].m[1] = -moment[i].m[1];
+			//mzの設定
+			if (strcmp(argv[2], "Bloch") == 0) {
+				moment[i].m[2] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
+				moment[n-i-1].m[2] = moment[i].m[2];
+			}else if (strcmp(argv[2], "Neel") == 0) {
+				moment[i].m[0] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
+				moment[n-i-1].m[0] = moment[i].m[0];
+			}else{
+				printf("use second option\n[Bloch, Neel]\n");
+				return 0;
+			}
 		}
-		//printf("---------------------------------\n");
-		char for_tester = 'm';
-		tester(1, &for_tester);
+		tester(2, "mqz");
 
 		// 平衡状態計算
 		for (t = 0; t < loops; t++) {
@@ -63,39 +66,20 @@ int main(int argc, char *argv[]) {
 			}
 			
 		}
+		tester(1,"m");
+
 		save_data("data.bin");
-		printf("data is saved\n");
-		printf("calculate ended\n");
+		printf("data is saved\ncalculate ended\n");
 		return 0;
-	}else{
-	// 平衡状態ロード
+
+	}else if (strcmp(argv[1], "load") == 0){
 		load_data("data.bin");
 		printf("data is loaded\n");
-	}
-	printf("x = %.6e\n", calc_mid());
+		return 0;
 
-
-	// 平衡状態から計算
-	before_mid = calc_mid();
-	double first_mid = before_mid;
-	for (t = 0; t < loops; t++) {
-		RK4();
-		// 出力
-
-		if (t%plots == 0) {
-			print_v(t*dt);
-			//printf("x = %.6e\n", calc_mid());
-		}
-
-		// 収束判定
-		if (judge_break2()) {
-			//break;
-		} else if (t == loops-1) {
-			print_v(t*dt);
-			printf("timeout\n");
-		}
-
-		before_mid = calc_mid();
+	}else{
+		printf("use option [save, load]\n");
+		return 0;
 	}
 	return 0;
 }
@@ -110,13 +94,13 @@ int judge_break1() {
 	static double avgLast = 0;
 	static int count = 0;
 	int i;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		// 可読性のため一時的に別変数へ
 		double* m = moment[i].m;
 		double* H_ef = moment[i].H_ef;
 		avgTmp += m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
 	}
-	avgTmp = avgTmp/(interval*region);
+	avgTmp = avgTmp/n;
 	count += 1;
 
 	if(IsFirst) {
@@ -138,28 +122,14 @@ int judge_break1() {
 	}
 }
 
-int judge_break2() {
-	static double max_v = 0;
-	double v = calc_v();
-	if (max_v < v) {
-		max_v = v;
-	} else if (v < max_v/2) {
-		return 1;
-	} else {
-		;
-	}
-	return 0;
-}
-
 
 // ---------------------------------------
 //	初期設定
 // ---------------------------------------
 int init() {
 	FILE *fp;
-	const int n = 256;
 	char fname[] = "init.data";
-	char line[n];
+	char line[256];
 	char str[16];
 	
 	// 設定用ファイルを開ける
@@ -170,12 +140,18 @@ int init() {
 	}
 
 	// 中身の取得
-	while(fgets(line, n, fp) != NULL) {
+	while(fgets(line, 256, fp) != NULL) {
 		switch (line[0]){
 		case '#':
 			break;
-		case 'd':
+		case 't':
 			sscanf(line, "%s %lf", str, &dt);
+			break;
+		case 'x':
+			sscanf(line, "%s %lf", str, &dx);
+			break;
+		case 'z':
+			sscanf(line, "%s %lf", str, &dz);
 			break;
 		case 'a':
 			sscanf(line, "%s %lf", str, &alpha);
@@ -192,24 +168,38 @@ int init() {
 		case 'M':
 			sscanf(line, "%s %lf", str, &M);
 			break;
-		case 'i':
-			sscanf(line, "%s %lf", str, &interval);
-			break;
-		case 'r':
-			sscanf(line, "%s %lf", str, &region);
-			break;
 		case 'l':
 			sscanf(line, "%s %lf", str, &loops);
 			break;
 		case 'p':
 			sscanf(line, "%s %d", str, &plots);
 			break;
-		case 'z':
-			sscanf(line, "%s %lf", str, &Hz);
+		case 'n':
+			sscanf(line, "%s %d", str, &n);
+			dn = (double)n;
 			break;
 		default:
 			break;
 		}
+	}
+
+	// qxx, qzzの計算
+	double k;
+	for (k = 0; k < n; k++) {
+		qxx[(int)k+(n-1)] = -2*M*(atan(0.5*dz/((k+0.5)*dx)) - atan(0.5*dz/((k-0.5)*dx)) - 
+		  atan(-0.5*dz/((k+0.5)*dx)) + atan(-0.5*dz/((k-0.5)*dx)));
+		qxx[-(int)k+(n-1)] = qxx[(int)k+(n-1)];
+
+		qzz[(int)k+(n-1)] = -2*M*(atan((k+0.5)*dx/(0.5*dz)) - atan((k-0.5)*dx/(0.5*dz)) -
+		  atan((k+0.5)*dx/(-0.5*dz)) + atan((k-0.5)*dx/(-0.5*dz)));
+		qzz[-(int)k+(n-1)] = qzz[(int)k+(n-1)];
+	}
+
+	// 各位置でのxの値
+	int i;
+	for (i = 0; i < n/2; i++) {
+		moment[i].x = -(dn/2 - (1+(double)i))*dx - dx/2;
+		moment[n-i-1].x = -moment[i].x;
 	}
 	return 0;
 }
@@ -220,7 +210,7 @@ int init() {
 // ---------------------------------------
 int RK4() {
 	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		for (j = 0; j < 3; j++) {
 			moment[i].m0[j] = moment[i].m[j];
 		}
@@ -246,7 +236,7 @@ int Euler(int target) {
 
 int llg(int target) {
 	int i;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		double* k = k_sub(i, target);
 		double* m = moment[i].m;
 		double* H_ef = moment[i].H_ef;
@@ -292,18 +282,18 @@ int Heff() {
 }
 
 int Hext() {
-	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	int i;
+	for (i = 0; i < n; i++) {
 		moment[i].H_ef[0] = 0;
 		moment[i].H_ef[1] = 0;
-		moment[i].H_ef[2] = Hz;
+		moment[i].H_ef[2] = 0;
 	}
 	return 0;
 }
 
 int HK() {
 	int i;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		moment[i].H_ef[2] += 2 * ku * moment[i].m[2] / M;
 	}
 	return 0;
@@ -312,7 +302,7 @@ int HK() {
 int HA() {
 	int i, j;
 	double mp, mm;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		for (j = 0; j < 3; j++) {
 			HA_sub(i, j, &mp, &mm);
 			moment[i].H_ef[j] += 2*A*(mp - 2*moment[i].m[j] + mm) / (M*dx*dx);
@@ -325,14 +315,14 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 	if (i == 0) {
 		*mp = moment[i+1].m[j];
 		*mm = 0;
-		if (j == 2) {
-			*mm = 1;
+		if (j == 1) {
+			*mm = -1;
 		}
-	} else if (i == interval*region - 1) {
+	} else if (i == n-1) {
 		*mp = 0;
 		*mm = moment[i-1].m[j];
-		if (j == 2) {
-			*mp = -1;
+		if (j == 1) {
+			*mp = 1;
 		}
 	} else {
 		*mp = moment[i+1].m[j];
@@ -342,10 +332,15 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 }
 
 int HD() {
-	int i;
-	for (i = 0; i < interval*region; i++) {
-		moment[i].H_ef[0] += - 4*M_PI*moment[i].m[0];
+	int io, is;
+	int ib = n-1;
+	for (io = 0; io < n; io++) {
+		for (is = 0; is < n; is++) {
+			moment[io].H_ef[0] += qxx[is-io+ib]*moment[is].m[0] + qxz*moment[is].m[2];
+			moment[io].H_ef[2] += qxz*moment[is].m[0] 			+ qzz[is-io+ib]*moment[is].m[2];
+		}
 	}
+	
 	return 0;
 }
 
@@ -355,7 +350,7 @@ int HD() {
 // ---------------------------------------
 int vadd(int target, double r) {
 	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		double* k = k_sub(i, target);
 		for (j = 0; j < 3; j++) {
 			moment[i].m[j] = moment[i].m0[j] + k[j]*r;
@@ -371,7 +366,7 @@ int vadd(int target, double r) {
 
 int vadd4() {
 	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		double* k1 = moment[i].k1;
 		double* k2 = moment[i].k2;
 		double* k3 = moment[i].k3;
@@ -397,19 +392,12 @@ int vadd4() {
 // 磁壁の中心の座標を返す関数
 double calc_mid() {
 	int i;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		if (moment[i].m[2] < 0) {
 			//printf("k: %.6e\nl: %.6e\n", moment[i-1].x, moment[i].x);
 			return moment[i].x - dx * fabs(moment[i].m[2])/(fabs(moment[i].m[2])+moment[i-1].m[2]);
 		}
 	}
-}
-
-// 前回の位置と、今回の位置から速度を求める関数
-double calc_v() {
-	double now_mid = calc_mid();
-	double v = (now_mid - before_mid)/dt;
-	return v;
 }
 
 
@@ -429,30 +417,31 @@ double calc_v() {
 //	・2: k2の出力
 //	・3: k3の出力
 //	・4: k4の出力
+//	・q: qxxとqzzの出力
+//	・qx: qxxの出力
+//	・qz: qzzの出力
 int tester(int argc, char* argv) {
 	int i, j;
 	for (i = 0; i < argc; i++) {
 		switch (argv[i]) {
 		case 'c':
 			printf("      dt = %.8e\n", dt);
+			printf("      dx = %.8e\n", dx);
+			printf("      dz = %.8e\n", dz);
 			printf("   alpha = %.8e\n", alpha);
 			printf("   Gamma = %.8e\n", Gamma);
 			printf("       A = %.8e\n", A);
 			printf("      ku = %.8e\n", ku);
 			printf("       M = %.8e\n", M);
-			printf("      lw = %.8e\n", lw);
-			printf("      dx = %.8e\n", dx);
-			printf("     phi = %.8e\n", phi);
-			printf("interval = %.8e\n", interval);
 			printf("   loops = %.8e\n", loops);
-			printf("      Hz = %.8e\n", Hz);
 			printf("   plots = %d\n", plots);
+			printf("       n = %d\n", n);
 			printf("-----------------------------------------\n");
 			break;
 
 		case 'm':
 			printf("mx my mz:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].m[0], moment[j].m[1], moment[j].m[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -460,7 +449,7 @@ int tester(int argc, char* argv) {
 
 		case 'H':
 			printf("Hx Hy Hz:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].H[0], moment[j].H[1], moment[j].H[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -468,7 +457,7 @@ int tester(int argc, char* argv) {
 
 		case 'e':
 			printf("Hx_ef Hy_ef Hz_ef:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].H_ef[0], moment[j].H_ef[1], moment[j].H_ef[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -476,7 +465,7 @@ int tester(int argc, char* argv) {
 
 		case '1':
 			printf("k1x k1y k1z:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k1[0], moment[j].k1[1], moment[j].k1[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -484,7 +473,7 @@ int tester(int argc, char* argv) {
 
 		case '2':
 			printf("k2x k2y k2z:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k2[0], moment[j].k2[1], moment[j].k2[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -492,7 +481,7 @@ int tester(int argc, char* argv) {
 
 		case '3':
 			printf("k3x k3y k3z:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k3[0], moment[j].k3[1], moment[j].k3[2]);
 			}
 			printf("-----------------------------------------\n");
@@ -500,8 +489,31 @@ int tester(int argc, char* argv) {
 
 		case '4':
 			printf("k4x k4y k4z:\n");
-			for (j = 0; j < interval*region; j++) {
+			for (j = 0; j < n; j++) {
 				printf("%.6e %.6e %.6e\n", moment[j].k4[0], moment[j].k4[1], moment[j].k4[2]);
+			}
+			printf("-----------------------------------------\n");
+			break;
+
+		// ここでqxx, qzz両方処理する。
+		case 'q':
+			if (argv[i+1] == 'x') {
+				printf("k qxx:\n");
+				for (j = 0; j < 2*n-1; j++) {
+					printf("%d %.6e\n", j-n+1, qxx[j]);
+				}
+				i += 1;
+			}else if (argv[i+1] == 'z') {
+				printf("k qzz:\n");
+				for (j = 0; j < 2*n-1; j++) {
+					printf("%d %.6e\n", j-n+1, qzz[j]);
+				}
+				i += 1;
+			}else{
+				printf("k qxx qzz:\n");
+				for (j = 0; j < 2*n-1; j++) {
+					printf("%d %.6e %.6e\n", j-n+1, qxx[j], qzz[j]);
+				}
 			}
 			printf("-----------------------------------------\n");
 			break;
@@ -533,25 +545,12 @@ int tester(int argc, char* argv) {
 	}
 }
 
-// vの時間経過観察用
-int print_v(double t) {
-	static int IsFirst = 1;
-	if (IsFirst) {
-		printf("t(μs) v(cm/s):\n");
-		printf("%.6e %.6e\n", t*1e9, calc_v());
-		IsFirst = 0;
-	} else {
-		printf("%.6e %.6e\n", t*1e9, calc_v());
-	}
-	return 0;
-}
-
 // データファイル書き込み関数
 int save_data(char* filename) {
 	FILE *to;
 	double buf[3072];
 	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		for (j = 0; j < 3; j++) {
 			buf[3*i + j] = moment[i].m[j];
 		}
@@ -576,7 +575,7 @@ int load_data(char* filename) {
 	fclose(from);
 	
 	int i, j;
-	for (i = 0; i < interval*region; i++) {
+	for (i = 0; i < n; i++) {
 		for (j = 0; j < 3; j++) {
 			moment[i].m[j] = buf[3*i + j];
 		}
