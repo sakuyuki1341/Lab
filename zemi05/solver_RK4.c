@@ -344,7 +344,7 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 int HD() {
 	int i;
 	for (i = 0; i < interval*region; i++) {
-		moment[i].H_ef[0] += - 4*M_PI*moment[i].m[0];
+		moment[i].H_ef[0] += - 4*M_PI*M*moment[i].m[0];
 	}
 	return 0;
 }
