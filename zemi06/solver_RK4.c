@@ -29,6 +29,8 @@ double qzz[2047];
 int main(int argc, char *argv[]) {
 	if(argc < 3) {
 		printf("the option is fault\n");
+		printf("use: ./a.exe [save, load] [Bloch, Neel]\n");
+		return 0;
 	}
 	init();
 
@@ -53,7 +55,6 @@ int main(int argc, char *argv[]) {
 				return 0;
 			}
 		}
-		tester(2, "mqz");
 
 		// 平衡状態計算
 		for (t = 0; t < loops; t++) {
@@ -66,7 +67,7 @@ int main(int argc, char *argv[]) {
 			}
 			
 		}
-		tester(1,"m");
+		tester(2,"ml");
 
 		save_data("data.bin");
 		printf("data is saved\ncalculate ended\n");
@@ -393,9 +394,20 @@ int vadd4() {
 double calc_mid() {
 	int i;
 	for (i = 0; i < n; i++) {
-		if (moment[i].m[2] < 0) {
+		if (moment[i].m[1] < 0) {
 			//printf("k: %.6e\nl: %.6e\n", moment[i-1].x, moment[i].x);
-			return moment[i].x - dx * fabs(moment[i].m[2])/(fabs(moment[i].m[2])+moment[i-1].m[2]);
+			return moment[i].x - dx * fabs(moment[i].m[1])/(fabs(moment[i].m[1])+moment[i-1].m[1]);
+		}
+	}
+}
+
+// 磁壁幅を返す関数
+double calc_lw() {
+	int i;
+	for (i = 0; i < n; i++) {
+		if (moment[i].m[1] > 0) {
+			double grad = (moment[i].m[1] - moment[i-1].m[1])/dx;
+			return 2/grad;
 		}
 	}
 }
@@ -440,9 +452,29 @@ int tester(int argc, char* argv) {
 			break;
 
 		case 'm':
-			printf("mx my mz:\n");
-			for (j = 0; j < n; j++) {
-				printf("%.6e %.6e %.6e\n", moment[j].m[0], moment[j].m[1], moment[j].m[2]);
+			if (argv[i+1] == 'x') {
+				printf("x(nm) mx:\n");
+				for (j = 0; j < n; j++) {
+					printf("%.6e %.6e\n", moment[j].x*10000000.0, moment[j].m[0]);
+				}
+				i += 1;
+			}else if (argv[i+1] == 'y') {
+				printf("x(nm) my:\n");
+				for (j = 0; j < n; j++) {
+					printf("%.6e %.6e\n", moment[j].x*10000000.0, moment[j].m[1]);
+				}
+				i += 1;
+			}else if (argv[i+1] == 'z') {
+				printf("x(nm) mz:\n");
+				for (j = 0; j < n; j++) {
+					printf("%.6e %.6e\n", moment[j].x*10000000.0, moment[j].m[2]);
+				}
+				i += 1;
+			}else{
+				printf("mx my mz:\n");
+				for (j = 0; j < n; j++) {
+					printf("%.6e %.6e %.6e\n", moment[j].m[0], moment[j].m[1], moment[j].m[2]);
+				}
 			}
 			printf("-----------------------------------------\n");
 			break;
@@ -518,6 +550,12 @@ int tester(int argc, char* argv) {
 			printf("-----------------------------------------\n");
 			break;
 
+		case 'l':;
+			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
+			printf("simlw(nm) = %.6e\n", calc_lw()*1e7);
+			printf("-----------------------------------------\n");
+			break;
+
 /*	調整中
 		case 't':
 			printf("x, theta:\n");
@@ -526,15 +564,6 @@ int tester(int argc, char* argv) {
 				double theta = acos(moment[i].m[2]);
 				printf("%.8lf %lf\n", x, theta);
 			}
-			printf("-----------------------------------------\n");
-			break;
-
-		case 'l':;
-			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
-			double grad = (acos(moment[(int)interval].m[2]) -acos(moment[(int)interval-1].m[2]))/dx;
-			double simlw = M_PI/grad;
-			printf("   lw = %.12lf\n", lw);
-			printf("simlw = %.12lf\n", simlw);
 			printf("-----------------------------------------\n");
 			break;
 */
