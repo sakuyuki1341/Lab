@@ -42,4 +42,4 @@ set xlabel 't [ns]'
 set ylabel 'v [cm/s]'
 
 # プロット
-plot "tmp" w lp title 'Timeout-Line'
+plot "tmp" w lp title 'Speed-Line'

@@ -83,15 +83,18 @@ int main(int argc, char *argv[]) {
 		// 出力
 
 		if (t%plots == 0) {
-			print_v(t*dt);
+			print_phi(t*dt);
+			//print_v(t*dt);
 			//printf("x = %.6e\n", calc_mid());
 		}
 
-		// 収束判定
+		/*// 収束判定
 		if (judge_break2()) {
 			//break;
-		} else if (t == loops-1) {
-			print_v(t*dt);
+		}*/
+		if (t == loops-1) {
+			print_phi(t*dt);
+			//print_v(t*dt);
 			printf("timeout\n");
 		}
 
@@ -542,6 +545,19 @@ int print_v(double t) {
 		IsFirst = 0;
 	} else {
 		printf("%.6e %.6e\n", t*1e9, calc_v());
+	}
+	return 0;
+}
+
+// phiの時間経過観察用
+int print_phi(double t) {
+	static int IsFirst = 1;
+	if (IsFirst) {
+		printf("t(ns) phi(rad):\n");
+		printf("%.6e %.6e\n", t*1e9, atan(moment[50].m[1]/moment[50].m[0]));
+		IsFirst = 0;
+	}else{
+		printf("%.6e %.6e\n", t*1e9, atan(moment[50].m[1]/moment[50].m[0]));
 	}
 	return 0;
 }
