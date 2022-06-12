@@ -537,7 +537,7 @@ int tester(int argc, char* argv) {
 int print_v(double t) {
 	static int IsFirst = 1;
 	if (IsFirst) {
-		printf("t(μs) v(cm/s):\n");
+		printf("t(ns) v(cm/s):\n");
 		printf("%.6e %.6e\n", t*1e9, calc_v());
 		IsFirst = 0;
 	} else {
