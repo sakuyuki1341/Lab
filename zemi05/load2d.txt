@@ -33,8 +33,8 @@ set lmargin 22
 set bmargin 8
 
 # 軸の範囲を設定
-#set xrange [0:0.01]
-#set yrange [-1:1]
+#set xrange [0:120]
+#set yrange [0:450]
 
 
 # 以下で軸名の設定
@@ -42,4 +42,6 @@ set xlabel 't [ns]'
 set ylabel 'v [cm/s]'
 
 # プロット
-plot "tmp" w lp title 'Speed-Line'
+plot "1-5" w lp title "interval = 5"
+replot "1-4" w lp title "interval = 4"
+replot "1-1" w lp title "interval = 1"

@@ -33,6 +33,8 @@ double calc_mid();
 double calc_v();
 int tester(int argc, char argv[]);
 int print_v(double t);
+int print_phi(double t);
+int print_mid(double t);
 int save_data(char* filename);
 int load_data(char* filename);
 

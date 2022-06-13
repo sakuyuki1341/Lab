@@ -49,8 +49,6 @@ int main(int argc, char *argv[]) {
 			//printf("%.8lf %lf\n", x, theta);
 		}
 		//printf("---------------------------------\n");
-		char for_tester = 'm';
-		tester(1, &for_tester);
 
 		// 平衡状態計算
 		for (t = 0; t < loops; t++) {
@@ -70,9 +68,9 @@ int main(int argc, char *argv[]) {
 	}else{
 	// 平衡状態ロード
 		load_data("data.bin");
-		printf("data is loaded\n");
+		printf("#data is loaded\n");
 	}
-	printf("x = %.6e\n", calc_mid());
+	//printf("firstmid_x = %.6e\n", calc_mid());
 
 
 	// 平衡状態から計算
@@ -83,8 +81,9 @@ int main(int argc, char *argv[]) {
 		// 出力
 
 		if (t%plots == 0) {
-			print_phi(t*dt);
-			//print_v(t*dt);
+			//print_mid(t*dt);
+			//print_phi(t*dt);
+			print_v(t*dt);
 			//printf("x = %.6e\n", calc_mid());
 		}
 
@@ -93,9 +92,10 @@ int main(int argc, char *argv[]) {
 			//break;
 		}*/
 		if (t == loops-1) {
-			print_phi(t*dt);
-			//print_v(t*dt);
-			printf("timeout\n");
+			//print_mid(t*dt);
+			//print_phi(t*dt);
+			print_v(t*dt);
+			printf("#timeout\n");
 		}
 
 		before_mid = calc_mid();
@@ -540,7 +540,7 @@ int tester(int argc, char* argv) {
 int print_v(double t) {
 	static int IsFirst = 1;
 	if (IsFirst) {
-		printf("t(ns) v(cm/s):\n");
+		printf("#t(ns) v(cm/s):\n");
 		printf("%.6e %.6e\n", t*1e9, calc_v());
 		IsFirst = 0;
 	} else {
@@ -554,10 +554,23 @@ int print_phi(double t) {
 	static int IsFirst = 1;
 	if (IsFirst) {
 		printf("t(ns) phi(rad):\n");
-		printf("%.6e %.6e\n", t*1e9, atan(moment[50].m[1]/moment[50].m[0]));
+		printf("%.6e %.6e\n", t*1e9, atan2(moment[50].m[1],moment[50].m[0])-M_PI/2);
 		IsFirst = 0;
 	}else{
-		printf("%.6e %.6e\n", t*1e9, atan(moment[50].m[1]/moment[50].m[0]));
+		printf("%.6e %.6e\n", t*1e9, atan2(moment[50].m[1],moment[50].m[0])-M_PI/2);
+	}
+	return 0;
+}
+
+// midの時間経過観察用
+int print_mid(double t) {
+	static int IsFirst = 1;
+	if (IsFirst) {
+		printf("#t(ns) mid_x(nm):\n");
+		printf("%.6e %.6e\n", t*1e9, calc_mid()*10000000);
+		IsFirst = 0;
+	}else{
+		printf("%.6e %.6e\n", t*1e9, calc_mid()*10000000);
 	}
 	return 0;
 }

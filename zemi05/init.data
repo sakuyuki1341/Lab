@@ -20,8 +20,8 @@ gamma 1.76e7
 A 0.1e-6
 ku 10000
 M 14
-interval 10
-loops 1.1e6
+interval 1
+loops 100e4
 prots 5000
 region 10
 z_H 1
