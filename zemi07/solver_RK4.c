@@ -10,6 +10,7 @@ M_moment moment[1024][1024];
 
 double dt = 0;
 double dx = 0;
+double dy = 0;
 double dz = 0;
 double alpha = 0;
 double Gamma = 0;
@@ -20,39 +21,35 @@ double lw = 0;
 double phi = 0;
 double loops = 0;
 int plots = 0;
-int n = 0;
-int nx = 30;
+int nx = 0;
 int ny = 0;
-int nz = 6;
-double dn = 0;
-double dnx = 30.0;
-double dnz = 6.0;
+int nz = 0;
+double dnx = 0;
+double dny = 0;
+double dnz = 0;
 
-double qxx[2047];
-double qxz = 0;
-double qzz[2047];
+double qxx[2047][2047];
+double qxz[2047][2047];
+double qzz[2047][2047];
 
 int main(int argc, char *argv[]) {
-/*
-	if(argc < 3) {
+	if(argc < 2) {
 		printf("the option is fault\n");
-		printf("use: ./a.exe [save, load] [Bloch, Neel]\n");
+		printf("use: ./a.exe [Bloch-a, Bloch-b, Neel]\n");
 		return 0;
 	}
-*/
-//	init();
+
+	init();
 
 	int i, j, k, t;
-	// 平衡状態計算
-//	if (strcmp(argv[1], "save") == 0) {
-	//平衡状態セーブ
 		// 初期条件設定
+	if (strcmp(argv[1], "Bloch-a") == 0) {
 		for (i = 0; i < nz; i++) {
 			for (j = 0; j < nx/2; j++) {
 				//myの設定
 				moment[i][j].m[1] = -(dnx/2-(1+(double)j))*(2/dnx) - 1/dnx;
 				moment[i][nx-j-1].m[1] = -moment[i][j].m[1];
-				//mzの設定
+				//mz,mxの設定
 				//　膜の表面の場合
 				if (i == 0) {
 					moment[i][j].m[0] = sqrt(1-moment[i][j].m[1]*moment[i][j].m[1]);
@@ -66,40 +63,76 @@ int main(int argc, char *argv[]) {
 				}
 			}
 		}
-		tester(1,"m");
-
-		// ここまで計算
-/*
-		// 平衡状態計算
-		for (t = 0; t < loops; t++) {
-			RK4();
-			// 収束判定
-			if (judge_break1()) {
-				break;
-			} else if (t == loops) {
-				printf("timeout\n");
+	}else if (strcmp(argv[1], "Bloch-b") == 0) {
+		for (i = 0; i < nz; i++) {
+			for (j = 0; j < nx/2; j++) {
+				// myの設定
+				moment[i][j].m[1] = -(dnx/2-(1+(double)j))*(2/dnx) - 1/dnx;
+				moment[i][nx-j-1].m[1] = -moment[i][j].m[1];
+				//mz,mxの設定
+				// 膜の表面の場合
+				if (i == 0) {
+					moment[i][j].m[0] = sqrt(1-pow(moment[i][j].m[1], 2.0));
+					moment[i][nx-j-1].m[0] = -moment[i][j].m[0];
+				}else if (i == nz-1) {
+					moment[i][j].m[0] = -sqrt(1-pow(moment[i][j].m[1], 2.0));
+					moment[i][nx-j-1].m[0] = -moment[i][j].m[0];
+				}else{
+					moment[i][j].m[2] = sqrt(1-moment[i][j].m[1]*moment[i][j].m[1]);
+					moment[i][nx-j-1].m[2] = moment[i][j].m[2];
+				}
 			}
-			
 		}
-		tester(2,"ml");
-
-		save_data("data.bin");
-		printf("data is saved\ncalculate ended\n");
-		return 0;
-
-	}else if (strcmp(argv[1], "load") == 0){
-		load_data("data.bin");
-		printf("data is loaded\n");
-		return 0;
-
+	}else if (strcmp(argv[1], "Neel-a") == 0) {
+		for (i = 0; i < nz; i++) {
+			for (j = 0; j < nx/2; j++) {
+				// myの設定
+				moment[i][j].m[1] = -(dnx/2-(1+(double)j))*(2/dnx) - 1/dnx;
+				moment[i][nx-j-1].m[1] = -moment[i][j].m[1];
+				moment[i][j].m[0] = sqrt(1-moment[i][j].m[1]*moment[i][j].m[1]);
+				moment[i][nx-j-1].m[0] = moment[i][j].m[0];
+			}
+		}
+	}else if (strcmp(argv[1], "Neel-b") == 0) {
+		for (i = 0; i < nz; i++) {
+			for (j = 0; j < nx/2; j++) {
+				// myの設定
+				moment[i][j].m[1] = -(dnx/2-(1+(double)j))*(2/dnx) - 1/dnx;
+				moment[i][nx-j-1].m[1] = -moment[i][j].m[1];
+				if (i == 0 || i == nz-1) {
+					moment[i][j].m[0] = sqrt(1-moment[i][j].m[1]*moment[i][j].m[1]);
+					moment[i][nx-j-1].m[0] = moment[i][j].m[0];
+				}else{
+					moment[i][j].m[0] = 0.1;
+					moment[i][j].m[2] = 0.1;
+				}
+			}
+		}
 	}else{
-		printf("use option [save, load]\n");
+		printf("the option is fault\n");
+		printf("use: ./a.exe [Bloch-a, Bloch-b, Neel]\n");
 		return 0;
 	}
-	*/
+
+	// 平衡状態計算
+	for (t = 0; t < loops; t++) {
+		RK4();
+		// 収束判定
+		if (judge_break1()) {
+			break;
+		}
+		if (t == loops) {
+			printf("timeout\n");
+		}	
+		if (t%plots == 0) {
+			//tester(1,"m");
+		}
+	}
+	tester(1,"g");
 	return 0;
 }
-/*
+
+
 // ---------------------------------------
 // 収束判定
 // ---------------------------------------
@@ -109,14 +142,16 @@ int judge_break1() {
 	static double avgFirst = 0;
 	static double avgLast = 0;
 	static int count = 0;
-	int i;
-	for (i = 0; i < n; i++) {
-		// 可読性のため一時的に別変数へ
-		double* m = moment[i].m;
-		double* H_ef = moment[i].H_ef;
-		avgTmp += m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
+	int i, j;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			// 可読性のため一時的に別変数へ
+			double* m = moment[i][j].m;
+			double* H_ef = moment[i][j].H_ef;
+			avgTmp += m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
+		}
 	}
-	avgTmp = avgTmp/n;
+	avgTmp = avgTmp/(nx*nz);
 	count += 1;
 
 	if(IsFirst) {
@@ -125,7 +160,7 @@ int judge_break1() {
 		IsFirst = false;
 		return 0;
 	} else {
-		if (fabs((avgLast-avgTmp)*1.0e12) <= fabs(avgFirst-avgTmp)) {
+		if (fabs((avgLast-avgTmp)*1.0e6) <= fabs(avgFirst-avgTmp)) {
 			return 1;
 		} else {
 			avgLast = avgTmp;
@@ -137,7 +172,6 @@ int judge_break1() {
 		}
 	}
 }
-
 
 // ---------------------------------------
 //	初期設定
@@ -163,11 +197,16 @@ int init() {
 		case 't':
 			sscanf(line, "%s %lf", str, &dt);
 			break;
-		case 'x':
-			sscanf(line, "%s %lf", str, &dx);
-			break;
-		case 'z':
-			sscanf(line, "%s %lf", str, &dz);
+		case 'd':
+			if (line[1] == 'x') {
+				sscanf(line, "%s %lf", str, &dx);
+			}else if (line[1] == 'y') {
+				sscanf(line, "%s %lf", str, &dy);
+			}else if (line[1] == 'z') {
+				sscanf(line, "%s %lf", str, &dz);
+			}else{
+				;
+			}
 			break;
 		case 'a':
 			sscanf(line, "%s %lf", str, &alpha);
@@ -191,8 +230,18 @@ int init() {
 			sscanf(line, "%s %d", str, &plots);
 			break;
 		case 'n':
-			sscanf(line, "%s %d", str, &n);
-			dn = (double)n;
+			if (line[1] == 'x') {
+				sscanf(line, "%s %d", str, &nx);
+				dnx = (double)nx;
+			}else if (line[1] == 'y') {
+				sscanf(line, "%s %d", str, &ny);
+				dny = (double)ny;
+			}else if (line[1] == 'z') {
+				sscanf(line, "%s %d", str, &nz);
+				dnz = (double)nz;
+			}else{
+				;
+			}
 			break;
 		default:
 			break;
@@ -200,35 +249,57 @@ int init() {
 	}
 
 	// qxx, qzzの計算
-	double k;
-	for (k = 0; k < n; k++) {
-		qxx[(int)k+(n-1)] = -2*M*(atan(0.5*dz/((k+0.5)*dx)) - atan(0.5*dz/((k-0.5)*dx)) - 
-		  atan(-0.5*dz/((k+0.5)*dx)) + atan(-0.5*dz/((k-0.5)*dx)));
-		qxx[-(int)k+(n-1)] = qxx[(int)k+(n-1)];
+	double k, l;
+	for (k = 0; k < nz; k++) {
+		for (l = 0; l < nx; l++) {
+			qxx[(int)k+(nz-1)][(int)l+(nx-1)] = -2*M*(atan((k+0.5)*dz/((l+0.5)*dx)) - atan((k+0.5)*dz/((l-0.5)*dx)) - 
+			  atan((k-0.5)*dz/((l+0.5)*dx)) + atan((k-0.5)*dz/((l-0.5)*dx)));
+			qxx[(int)k+(nz-1)][-(int)l+(nx-1)] = qxx[(int)k+(nz-1)][(int)l+(nx-1)];
+			qxx[-(int)k+(nz-1)][(int)l+(nx-1)] = qxx[(int)k+(nz-1)][(int)l+(nx-1)];
+			qxx[-(int)k+(nz-1)][-(int)l+(nx-1)] = qxx[(int)k+(nz-1)][(int)l+(nx-1)];
 
-		qzz[(int)k+(n-1)] = -2*M*(atan((k+0.5)*dx/(0.5*dz)) - atan((k-0.5)*dx/(0.5*dz)) -
-		  atan((k+0.5)*dx/(-0.5*dz)) + atan((k-0.5)*dx/(-0.5*dz)));
-		qzz[-(int)k+(n-1)] = qzz[(int)k+(n-1)];
+			qzz[(int)k+(nz-1)][(int)l+(nx-1)] = -2*M*(atan((l+0.5)*dx/((k+0.5)*dz)) - atan((l-0.5)*dx/((k+0.5)*dz)) -
+			  atan((l+0.5)*dx/((k-0.5)*dz)) + atan((l-0.5)*dx/((k-0.5)*dz)));
+			qzz[(int)k+(nz-1)][-(int)l+(nx-1)] = qzz[(int)k+(nz-1)][(int)l+(nx-1)];
+			qzz[-(int)k+(nz-1)][(int)l+(nx-1)] = qzz[(int)k+(nz-1)][(int)l+(nx-1)];
+			qzz[-(int)k+(nz-1)][-(int)l+(nx-1)] = qzz[(int)k+(nz-1)][(int)l+(nx-1)];
+		}
 	}
 
-	// 各位置でのxの値
-	int i;
-	for (i = 0; i < n/2; i++) {
-		moment[i].x = -(dn/2 - (1+(double)i))*dx - dx/2;
-		moment[n-i-1].x = -moment[i].x;
+	// qxzの計算
+	for (k = 0; k < 2*nz-1; k++) {
+		for (l = 0; l < 2*nx-1; l++) {
+			double km = k-(nz-1);
+			double lm = l-(nx-1);
+			qxz[(int)k][(int)l] = -M*log(pow(((lm+0.5)*dx),2.0)+pow(((km+0.5)*dz),2.0)) + M*log(pow(((lm-0.5)*dx),2.0)+pow(((km+0.5)*dz),2.0)) +
+			  M*log(pow(((lm+0.5)*dx),2.0)+pow(((km-0.5)*dz),2.0)) - M*log(pow(((lm-0.5)*dx),2.0)+pow(((km-0.5)*dz),2.0));
+		}
+	}
+
+	// 各位置での(z,x)の値
+	int i, j;
+	for (i = 0; i < nz; i++) {
+		double tmp_z = -(dnz/2 - (1+(double)i))*dz - dz/2;
+		for (j = 0; j < nx/2; j++) {
+			moment[i][j].x = -(dnx/2 - (1+(double)j))*dx - dx/2;
+			moment[i][nx-j-1].x = -moment[i][j].x;
+			moment[i][j].z = tmp_z;
+			moment[i][nx-j-1].z = tmp_z;
+		}
 	}
 	return 0;
 }
-
 
 // ---------------------------------------
 //	ルンゲクッタ法
 // ---------------------------------------
 int RK4() {
-	int i, j;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			moment[i].m0[j] = moment[i].m[j];
+	int i, j, k;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			for (k = 0; k < 3; k++) {
+				moment[i][j].m0[k] = moment[i][j].m[k];
+			}
 		}
 	}
 
@@ -251,32 +322,34 @@ int Euler(int target) {
 }
 
 int llg(int target) {
-	int i;
-	for (i = 0; i < n; i++) {
-		double* k = k_sub(i, target);
-		double* m = moment[i].m;
-		double* H_ef = moment[i].H_ef;
-		double c = m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
-		k[0] = dt * (-fabs(Gamma)) * (m[1]*H_ef[2] - m[2]*H_ef[1] + alpha*(c*m[0] - H_ef[0])) / (1 + alpha*alpha);
-		k[1] = dt * (-fabs(Gamma)) * (m[2]*H_ef[0] - m[0]*H_ef[2] + alpha*(c*m[1] - H_ef[1])) / (1 + alpha*alpha);
-		k[2] = dt * (-fabs(Gamma)) * (m[0]*H_ef[1] - m[1]*H_ef[0] + alpha*(c*m[2] - H_ef[2])) / (1 + alpha*alpha);
+	int i, j;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			double* k = k_sub(i, j, target);
+			double* m = moment[i][j].m;
+			double* H_ef = moment[i][j].H_ef;
+			double c = m[0]*H_ef[0] + m[1]*H_ef[1] + m[2]*H_ef[2];
+			k[0] = dt * (-fabs(Gamma)) * (m[1]*H_ef[2] - m[2]*H_ef[1] + alpha*(c*m[0] - H_ef[0])) / (1 + alpha*alpha);
+			k[1] = dt * (-fabs(Gamma)) * (m[2]*H_ef[0] - m[0]*H_ef[2] + alpha*(c*m[1] - H_ef[1])) / (1 + alpha*alpha);
+			k[2] = dt * (-fabs(Gamma)) * (m[0]*H_ef[1] - m[1]*H_ef[0] + alpha*(c*m[2] - H_ef[2])) / (1 + alpha*alpha);
+		}
 	}
 	return 0;
 }
 
-double* k_sub(int i, int target) {
+double* k_sub(int i, int j, int target) {
 	switch (target) {
 	case 1:
-		return moment[i].k1;
+		return moment[i][j].k1;
 		break;
 	case 2:
-		return moment[i].k2;
+		return moment[i][j].k2;
 		break;
 	case 3:
-		return moment[i].k3;
+		return moment[i][j].k3;
 		break;
 	case 4:
-		return moment[i].k4;
+		return moment[i][j].k4;
 		break;
 	default:
 		printf("llg_sub: error\n");
@@ -298,65 +371,94 @@ int Heff() {
 }
 
 int Hext() {
-	int i;
-	for (i = 0; i < n; i++) {
-		moment[i].H_ef[0] = 0;
-		moment[i].H_ef[1] = 0;
-		moment[i].H_ef[2] = 0;
+	int i, j;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			moment[i][j].H_ef[0] = 0;
+			moment[i][j].H_ef[1] = 0;
+			moment[i][j].H_ef[2] = 0;
+		}
 	}
 	return 0;
 }
 
 int HK() {
-	int i;
-	for (i = 0; i < n; i++) {
-		moment[i].H_ef[2] += 2 * ku * moment[i].m[2] / M;
+	int i, j;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			moment[i][j].H_ef[2] += 2 * ku * moment[i][j].m[2] / M;
+		}
 	}
 	return 0;
 }
 
 int HA() {
-	int i, j;
+	int i, j, k;
 	double mp, mm;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			HA_sub(i, j, &mp, &mm);
-			moment[i].H_ef[j] += 2*A*(mp - 2*moment[i].m[j] + mm) / (M*dx*dx);
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j <nx; j++) {
+			for (k = 0; k < 3; k++) {
+				HA_sub_x(i, j, k, &mp, &mm);
+				moment[i][j].H_ef[k] += 2*A*(mp - 2*moment[i][j].m[k] + mm) / (M*dx*dx);
+				HA_sub_z(i, j, k, &mp, &mm);
+				moment[i][j].H_ef[k] += 2*A*(mp - 2*moment[i][j].m[k] + mm) / (M*dz*dz);
+			}
 		}
 	}
 	return 0;
 }
 
-int HA_sub(int i, int j, double* mp, double* mm) {
-	if (i == 0) {
-		*mp = moment[i+1].m[j];
+int HA_sub_x(int i, int j, int k, double* mp, double* mm) {
+	if (j == 0) {
+		*mp = moment[i][j+1].m[k];
 		*mm = 0;
 		if (j == 1) {
 			*mm = -1;
 		}
-	} else if (i == n-1) {
+	} else if (j == nx-1) {
 		*mp = 0;
-		*mm = moment[i-1].m[j];
+		*mm = moment[i][j-1].m[k];
 		if (j == 1) {
 			*mp = 1;
 		}
 	} else {
-		*mp = moment[i+1].m[j];
-		*mm = moment[i-1].m[j];
+		*mp = moment[i][j+1].m[k];
+		*mm = moment[i][j-1].m[k];
+	}
+	return 0;
+}
+
+int HA_sub_z(int i, int j, int k, double* mp, double* mm) {
+	if (i == 0) {
+		*mp = moment[i+1][j].m[k];
+		*mm = moment[i][j].m[k];
+
+	} else if (i == nz-1) {
+		*mp = moment[i][j].m[k];
+		*mm = moment[i-1][j].m[k];
+	} else {
+		*mp = moment[i+1][j].m[k];
+		*mm = moment[i-1][j].m[k];
 	}
 	return 0;
 }
 
 int HD() {
-	int io, is;
-	int ib = n-1;
-	for (io = 0; io < n; io++) {
-		for (is = 0; is < n; is++) {
-			moment[io].H_ef[0] += qxx[is-io+ib]*moment[is].m[0] + qxz*moment[is].m[2];
-			moment[io].H_ef[2] += qxz*moment[is].m[0] 			+ qzz[is-io+ib]*moment[is].m[2];
+	int io_x, io_z, is_x, is_z;
+	int ib_x = nx-1;
+	int ib_z = nz-1;
+	for (io_z = 0; io_z < nz; io_z++) {
+		for (io_x = 0; io_x < nx; io_x++) {
+			for (is_z = 0; is_z < nz; is_z++) {
+				for (is_x = 0; is_x < nx; is_x++) {
+					moment[io_z][io_x].H_ef[0] += qxx[is_z-io_z+ib_z][is_x-io_x+ib_x] * moment[is_z][is_x].m[0]  +
+					  qxz[is_z-io_z+ib_z][is_x-io_x+ib_x] * moment[is_z][is_x].m[2];
+					moment[io_z][io_x].H_ef[2] += qzz[is_z-io_z+ib_z][is_x-io_x+ib_x] * moment[is_z][is_x].m[2]  +
+					  qxz[is_z-io_z+ib_z][is_x-io_x+ib_x] * moment[is_z][is_x].m[0];
+				}
+			}
 		}
 	}
-	
 	return 0;
 }
 
@@ -365,88 +467,69 @@ int HD() {
 //	vadd 
 // ---------------------------------------
 int vadd(int target, double r) {
-	int i, j;
-	for (i = 0; i < n; i++) {
-		double* k = k_sub(i, target);
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = moment[i].m0[j] + k[j]*r;
-		}
-		// 正規化
-		double absm = sqrt(moment[i].m[0]*moment[i].m[0] + moment[i].m[1]*moment[i].m[1] + moment[i].m[2]*moment[i].m[2]);
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = moment[i].m[j]/absm;
+	int i, j, l;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			double* k = k_sub(i, j, target);
+			for (l = 0; l < 3; l++) {
+				moment[i][j].m[l] = moment[i][j].m0[l] + k[l]*r;
+			}
+			// 正規化
+			double absm = sqrt(pow(moment[i][j].m[0], 2.0) + pow(moment[i][j].m[1], 2.0) + pow(moment[i][j].m[2], 2.0));
+			for (l = 0; l < 3; l++) {
+				moment[i][j].m[l] = moment[i][j].m[l]/absm;
+			}
 		}
 	}
 	return 0;
 }
 
 int vadd4() {
-	int i, j;
-	for (i = 0; i < n; i++) {
-		double* k1 = moment[i].k1;
-		double* k2 = moment[i].k2;
-		double* k3 = moment[i].k3;
-		double* k4 = moment[i].k4;
+	int i, j, l;
+	for (i = 0; i < nz; i++) {
+		for (j = 0; j < nx; j++) {
+			double* k1 = moment[i][j].k1;
+			double* k2 = moment[i][j].k2;
+			double* k3 = moment[i][j].k3;
+			double* k4 = moment[i][j].k4;
 
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = moment[i].m0[j] + (k1[j] + 2*k2[j] + 2*k3[j] + k4[j])/6;
-		}
-		// 正規化
-		double absm = sqrt(moment[i].m[0]*moment[i].m[0] + moment[i].m[1]*moment[i].m[1] + moment[i].m[2]*moment[i].m[2]);
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = moment[i].m[j]/absm;
+			for (l = 0; l < 3; l++) {
+				moment[i][j].m[l] = moment[i][j].m0[l] + (k1[l] + 2*k2[l] + 2*k3[l] +k4[l])/6;
+			}
+			// 正規化
+			double absm = sqrt(pow(moment[i][j].m[0], 2.0) + pow(moment[i][j].m[1], 2.0) + pow(moment[i][j].m[2], 2.0));
+			for (l = 0; l < 3; l++) {
+				moment[i][j].m[l] = moment[i][j].m[l]/absm;
+			}
 		}
 	}
 	return 0;
 }
-
-
-// ---------------------------------------
-//	各種値を返す関数
-// ---------------------------------------
-
-// 磁壁の中心の座標を返す関数
-double calc_mid() {
-	int i;
-	for (i = 0; i < n; i++) {
-		if (moment[i].m[1] < 0) {
-			//printf("k: %.6e\nl: %.6e\n", moment[i-1].x, moment[i].x);
-			return moment[i].x - dx * fabs(moment[i].m[1])/(fabs(moment[i].m[1])+moment[i-1].m[1]);
-		}
-	}
-}
-
-// 磁壁幅を返す関数
-double calc_lw() {
-	int i;
-	for (i = 0; i < n; i++) {
-		if (moment[i].m[1] > 0) {
-			double grad = (moment[i].m[1] - moment[i-1].m[1])/dx;
-			return 2/grad;
-		}
-	}
-}
-*/
 
 // ---------------------------------------
 //	出力用関数
 // ---------------------------------------
 
 // テスト用関数
-//  in: (オプション数, オプション名一文で)
+//  in: (オプション文字の数, オプション名一文で)
 // out: なし
 // オプション名一覧
-//	・c: 材料定数出力
-//	・m: 磁気モーメント出力
-//	・H: 外部磁界出力
-//	・e: 実効磁界も含めた磁界の出力
+//	・c: 材料定数の出力
+//	・m: 磁気モーメントの出力
+//	・mx:座標系とmxの出力
+//	・my:座標系とmyの出力
+//	・mz:座標系とmzの出力
+//	・H: 外部磁界の出力
+//	・e: 実効磁界の出力
 //	・1: k1の出力
 //	・2: k2の出力
 //	・3: k3の出力
 //	・4: k4の出力
-//	・q: qxxとqzzの出力
+//	・q: qxx,qzz,qxzの出力
 //	・qx: qxxの出力
 //	・qz: qzzの出力
+//	・q_: qxzの出力
+//	・g: gnuplot用のベクトル出力(x-z平面)
 int tester(int argc, char* argv) {
 	int i, j, k;
 	for (i = 0; i < argc; i++) {
@@ -462,7 +545,9 @@ int tester(int argc, char* argv) {
 			printf("       M = %.8e\n", M);
 			printf("   loops = %.8e\n", loops);
 			printf("   plots = %d\n", plots);
-			printf("       n = %d\n", n);
+			printf("      nx = %d\n", nx);
+			printf("      ny = %d\n", ny);
+			printf("      nz = %d\n", nz);
 			printf("-----------------------------------------\n");
 			break;
 
@@ -544,89 +629,57 @@ int tester(int argc, char* argv) {
 			}
 			printf("-----------------------------------------\n");
 			break;
+*/
 
 		// ここでqxx, qzz両方処理する。
 		case 'q':
 			if (argv[i+1] == 'x') {
-				printf("k qxx:\n");
-				for (j = 0; j < 2*n-1; j++) {
-					printf("%d %.6e\n", j-n+1, qxx[j]);
+				printf("k l qxx[k][l]:\n");
+				for (j = 0; j < 2*nz-1; j++) {
+					for (k = 0; k < 2*nx-1; k++) {
+						printf("%d %d %.6e\n", j-nz+1, k-nx+1, qxx[j][k]);
+					}
 				}
 				i += 1;
 			}else if (argv[i+1] == 'z') {
-				printf("k qzz:\n");
-				for (j = 0; j < 2*n-1; j++) {
-					printf("%d %.6e\n", j-n+1, qzz[j]);
+				printf("k l qzz[k][l]:\n");
+				for (j = 0; j < 2*nz-1; j++) {
+					for (k = 0; k < 2*nx-1; k++) {
+						printf("%d %d %.6e\n", j-nz+1, k-nx+1, qzz[j][k]);
+					}
+				}
+				i += 1;
+			}else if (argv[i+1] == '_') {
+				printf("k l qxz[k][l]:\n");
+				for (j = 0; j < 2*nz-1; j++) {
+					for (k = 0; k < 2*nx-1; k++) {
+						printf("%d %d %.6e\n", j-nz+1, k-nx+1, qxz[j][k]);
+					}
 				}
 				i += 1;
 			}else{
-				printf("k qxx qzz:\n");
-				for (j = 0; j < 2*n-1; j++) {
-					printf("%d %.6e %.6e\n", j-n+1, qxx[j], qzz[j]);
+				printf("k l qxx qzz qxz:\n");
+				for (j = 0; j < 2*nz-1; j++) {
+					for (k = 0; k < 2*nx-1; k++) {
+						printf("%d %d %.6e %.6e %.6e\n", j-nz+1, k-nx+1, qxx[j][k], qzz[j][k], qxz[j][k]);
+					}
 				}
 			}
 			printf("-----------------------------------------\n");
 			break;
 
-		case 'l':;
-			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
-			printf("simlw(nm) = %.6e\n", calc_lw()*1e7);
-			printf("-----------------------------------------\n");
-			break;
-*/
-/*	調整中
-		case 't':
-			printf("x, theta:\n");
-			for (i = 0; i < interval*region; i++) {
-				double x = ((double)i-interval)*dx + dx/2;
-				double theta = acos(moment[i].m[2]);
-				printf("%.8lf %lf\n", x, theta);
+		case 'g':
+			printf("#x(nm) z(nm) vx vz:\n");
+			for (j = 0; j < nz; j++) {
+				for (k = 0; k < nx; k++) {
+					printf("%.6e %.6e %.6e %.6e\n", moment[j][k].x*10000000, moment[j][k].z*10000000, moment[j][k].m[0]*10, moment[j][k].m[2]*10);
+				}
 			}
-			printf("-----------------------------------------\n");
+			printf("#-----------------------------------------\n");
 			break;
-*/
 
 		default:
 			break;
 		}
 	}
 }
-/*
-// データファイル書き込み関数
-int save_data(char* filename) {
-	FILE *to;
-	double buf[3072];
-	int i, j;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			buf[3*i + j] = moment[i].m[j];
-		}
-	}
-
-	to = fopen(filename, "wb");
-	fwrite(buf, sizeof(double), 3072, to);
-	fclose(to);
-
-	return 0;
-}
-
-// ---------------------------------------
-//	入力用関数
-// ---------------------------------------
-// データファイル読み込み関数
-int load_data(char* filename) {
-	FILE *from;
-	double buf[3072];
-	from = fopen(filename, "rb");
-	fread(buf, sizeof(double), 3072, from);
-	fclose(from);
-	
-	int i, j;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = buf[3*i + j];
-		}
-	}
-	return 0;
-}
-*/

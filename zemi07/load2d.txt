@@ -1,0 +1,46 @@
+reset
+# 凡例を外に
+set key right outside
+
+# フォントとその大きさの設定
+set ylabel font 'Arial,35'
+set xlabel font 'Arial,35'
+set tics font 'Arial,30'
+set key font 'Arial,25'
+
+# メモリの位置
+set xtic offset 0,-1
+set ytic offset 0,0
+
+# メモリの間隔
+#set xtics 25
+set ytics 25
+
+# グリッドの表示
+set grid
+
+# ラベルの位置
+set xlabel offset 0,-3
+set ylabel offset -10,0
+
+# 左の余白
+set lmargin 22
+# 右の余白
+#set rmargin 0
+# 上の余白
+#set tmargin 2
+# 下の余白
+set bmargin 8
+
+# 軸の範囲を設定
+#set xrange [0:0.01]
+#set yrange [-1:1]
+
+
+# 以下で軸名の設定
+set xlabel 'x [nm]'
+set ylabel 'z [nm]'
+
+# プロット
+plot\
+"tmp" u 1:2:3:4 t '' w vec lw 3

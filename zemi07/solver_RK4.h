@@ -11,6 +11,8 @@ struct m_moment {
 	double k3[3];
 	double k4[3];
 	double x;
+	double y;
+	double z;
 };
 typedef struct m_moment M_moment;
 
@@ -19,18 +21,16 @@ int init();
 int RK4();
 int Euler(int target);
 int llg(int target);
-double* k_sub(int i, int target);
+double* k_sub(int i, int j, int target);
 int Heff();
 int Hext();
 int HK();
 int HA();
-int HA_sub(int i, int j, double* mp, double* mm);
+int HA_sub_x(int i, int j, int k, double* mp, double* mm);
+int HA_sub_z(int i, int j, int k, double* mp, double* mm);
 int HD();
 int vadd(int target, double r);
 int vadd4();
-double calc_mid();
 int tester(int argc, char argv[]);
-int save_data(char* filename);
-int load_data(char* filename);
 
 #endif 
