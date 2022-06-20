@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include "solver_RK4.h"
 
 // moment[nz][nx]
@@ -32,12 +33,16 @@ double qxx[2047][2047];
 double qxz[2047][2047];
 double qzz[2047][2047];
 
+clock_t st, ed;
+
 int main(int argc, char *argv[]) {
 	if(argc < 2) {
 		printf("the option is fault\n");
-		printf("use: ./a.exe [Bloch-a, Bloch-b, Neel]\n");
+		printf("use: ./a.exe [Bloch-a, Bloch-b, Neel-a, Neel-b]\n");
 		return 0;
 	}
+
+	st = clock();
 
 	init();
 
@@ -128,7 +133,7 @@ int main(int argc, char *argv[]) {
 			//tester(1,"m");
 		}
 	}
-	tester(1,"g");
+	tester(1,"t");
 	return 0;
 }
 
@@ -530,6 +535,7 @@ int vadd4() {
 //	・qz: qzzの出力
 //	・q_: qxzの出力
 //	・g: gnuplot用のベクトル出力(x-z平面)
+//	・t: 計算時間の出力
 int tester(int argc, char* argv) {
 	int i, j, k;
 	for (i = 0; i < argc; i++) {
@@ -676,6 +682,12 @@ int tester(int argc, char* argv) {
 				}
 			}
 			printf("#-----------------------------------------\n");
+			break;
+
+		case 't':
+			ed = clock();
+			printf("#nz t(s):\n");
+			printf("%d %.6e\n", nz, (double)(ed-st)/CLOCKS_PER_SEC);
 			break;
 
 		default:

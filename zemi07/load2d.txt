@@ -14,7 +14,7 @@ set ytic offset 0,0
 
 # メモリの間隔
 #set xtics 25
-set ytics 25
+#set ytics 25
 
 # グリッドの表示
 set grid
@@ -38,9 +38,8 @@ set bmargin 8
 
 
 # 以下で軸名の設定
-set xlabel 'x [nm]'
-set ylabel 'z [nm]'
+set xlabel 'nz'
+set ylabel 't [s]'
 
 # プロット
-plot\
-"tmp" u 1:2:3:4 t '' w vec lw 3
+plot 'tmp' w lp title 'time-line'
