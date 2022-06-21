@@ -123,6 +123,6 @@ int main(int argc, char *argv[]) {
 		}
 	}
 
-	tester(1,"g");
+	tester(1,"m");
 	return 0;
 }
