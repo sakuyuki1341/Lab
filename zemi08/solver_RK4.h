@@ -1,6 +1,7 @@
 #ifndef SUB_H
 #define SUB_H
 
+// 各セルの情報
 struct m_moment {
 	double m[3];
 	double m0[3];
@@ -16,6 +17,7 @@ struct m_moment {
 };
 typedef struct m_moment M_moment;
 
+// 関数群
 int judge_break1();
 int init();
 int RK4();
@@ -27,6 +29,7 @@ int Hext();
 int HK();
 int HA();
 int HA_sub_x(int i, int j, int k, double* mp, double* mm);
+int HA_sub_y(int i, int j, int k, double* mp, double* mm);
 int HA_sub_z(int i, int j, int k, double* mp, double* mm);
 int HD();
 int vadd(int target, double r);
