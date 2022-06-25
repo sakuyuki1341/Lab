@@ -196,9 +196,9 @@ int init() {
 
 	// 各位置での(z,y,x)の値を計算
 	int i, j, k, l;
-	for (i = 0; i < ny/2; i++) {
+	for (i = 0; i < dny/2; i++) {
 		double tmp_y = -(dny/2 - (1+(double)i))*dy - dy/2;
-		for (j = 0; j < nx/2; j++) {
+		for (j = 0; j < dnx/2; j++) {
 			moment[i][j].x = -(dnx/2 - (1+(double)j))*dx - dx/2;
 			moment[ny-i-1][j].x = moment[i][j].x;
 			moment[i][nx-j-1].x = -moment[i][j].x;

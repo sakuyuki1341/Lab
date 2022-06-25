@@ -25,6 +25,6 @@ ku 0
 M 800
 loops 1.0e6
 prots 1000
-nx 48
-ny 16
+nx 96
+ny 32
 nz 1
