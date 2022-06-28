@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.1-180226-2.6 (utf8.sjis) (TeX Live 2018/W32TeX) (preloaded format=platex 2018.6.11)  21 JUN 2022 00:15
+This is e-pTeX, Version 3.14159265-p3.8.1-180226-2.6 (utf8.sjis) (TeX Live 2018/W32TeX) (preloaded format=platex 2018.6.11)  27 JUN 2022 15:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -897,15 +897,16 @@ File: pic01.eps Graphic file (type eps)
 <pic01.eps>
 File: pic02.eps Graphic file (type eps)
 <pic02.eps>
+
+[5]
 File: pic03.eps Graphic file (type eps)
 <pic03.eps>
 File: pic04.eps Graphic file (type eps)
 <pic04.eps>
-
-[5]
+ [6]
 File: pic12.eps Graphic file (type eps)
 <pic12.eps>
- [6] [7] (./report07.aux)
+ [7] [8] (./report07.aux)
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.5pt have occurred.
@@ -920,4 +921,4 @@ Here is how much of TeX's memory you used:
  934 hyphenation exceptions out of 8191
  59i,13n,97p,851b,708s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on report07.dvi (7 pages, 21168 bytes).
+Output written on report07.dvi (8 pages, 21800 bytes).

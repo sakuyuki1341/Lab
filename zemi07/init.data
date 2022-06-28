@@ -16,7 +16,7 @@
 
 t(dt) 0.1e-12
 dx 80e-8
-dz 80e-8
+dz 35.975e-8
 alpha 1
 gamma 1.76e7
 A 1e-6
@@ -25,4 +25,4 @@ M 800
 loops 1.0e6
 prots 1000
 nx 30
-nz 19
+nz 12

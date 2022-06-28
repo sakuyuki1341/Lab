@@ -159,7 +159,7 @@ $\pm \mathrm{z}$の境界領域はノイマン条件を用いる。
 	\item 初期値(非対称$\mathrm{N\Acute{e}el}$磁壁):
 	\begin{itemize}
 		\item 膜表面:1次元$\mathrm{N\Acute{e}el}$磁壁の計算で用いたもの
-		\item 表面以外:mx,myをそれぞれ0.1に設定
+		\item 表面以外:mx,mzをそれぞれ0.5に設定
 	\end{itemize}
 	\item 初期値(対称$\mathrm{N\Acute{e}el}$磁壁):1次元$\mathrm{N\Acute{e}el}$磁壁の計算で用いたもの
 \end{itemize}
@@ -233,7 +233,16 @@ $\pm \mathrm{z}$の境界領域はノイマン条件を用いる。
 \subsection{小問3}
 この小問では、2次元のBloch磁壁及び$\mathrm{N\Acute{e}el}$磁壁の磁化構造を求め、得られた磁化構造を図で示す。
 
-ただし、$\mathrm{N\Acute{e}el}$磁壁では$\mathrm{nz}=6$として計算した。
+ただし、第3章2節の材料定数のままではBloch磁壁が出てきてしまうため、計算条件を工夫した。
+工夫内容は、まず$\mathrm{nz}=12$とする。対称$\mathrm{N\Acute{e}el}$磁壁の算出時は$\mathrm{dz} = 10$\,\AA、
+非対称$\mathrm{N\Acute{e}el}$磁壁の算出時は$\mathrm{dz} = 35.9$\,\AA とした。
+
+対称$\mathrm{N\Acute{e}el}$磁壁や、非対称$\mathrm{N\Acute{e}el}$磁壁を計算するときに、
+この膜厚を大きくしたところ、対称$\mathrm{N\Acute{e}el}$磁壁は非対称$\mathrm{N\Acute{e}el}$へと変わってしまい、
+非対称$\mathrm{N\Acute{e}el}$磁壁はBloch磁壁の形に変わってしまった。
+
+また、第3章2節にあるように、非対称$\mathrm{N\Acute{e}el}$磁壁を計算する場合は、
+事前に表面以外の磁気モーメントをx,z正方向に向けておくことで得られやすかった。
 
 計算結果の図は、gnuplotのベクトル表示の機能を使用して作成した。
 その結果を図\ref{fig06},\ref{fig04}として示す。
@@ -273,14 +282,10 @@ $\pm \mathrm{z}$の境界領域はノイマン条件を用いる。
 	\label{fig04}
 \end{figure}
 
-図\ref{fig06},\ref{fig04}からいくつかわかったことがある。
+図\ref{fig06},\,\ref{fig04}から幾つかわかったことがある。
 まず、対称非対称に限らず、Bloch磁壁は図\ref{fig01}の概念図と非常に近い形で計算がされた。
-しかしながら、$\mathrm{N\Acute{e}el}$磁壁に関しては、対称非対称の双方で概念図と離れた形の計算結果となった。
-
-さらには、図\ref{fig04_4}ではおおよそ$\mathrm{N\Acute{e}el}$磁壁とは見えるが、対称Bloch磁壁のような形とも捉えられる。
-推察するに、膜厚がちょうど$\mathrm{N\Acute{e}el}$磁壁ともBloch磁壁とも成りきれない厚さだったからと捉えられる。
-これは非対称$\mathrm{N\Acute{e}el}$磁壁が出現する条件と一致するが、計算結果自体は明らかに$\mathrm{N\Acute{e}el}$磁壁と、
-判ずるのが難しいものとなった。
+また、$\mathrm{N\Acute{e}el}$磁壁に関しては、対称は概念図とほぼ一致した。
+非対称は概念図と多少異なるものの概ね想定通りの形となった。
 
 \subsection{小問4}
 この小問では、計算点と計算時間の関係をグラフで示す。

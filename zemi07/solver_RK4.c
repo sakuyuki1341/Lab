@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
 
 	init();
 
-	int i, j, k, t;
+	int i, j, k, l, t;
 		// 初期条件設定
 	if (strcmp(argv[1], "Bloch-a") == 0) {
 		for (i = 0; i < nz; i++) {
@@ -108,8 +108,13 @@ int main(int argc, char *argv[]) {
 					moment[i][j].m[0] = sqrt(1-moment[i][j].m[1]*moment[i][j].m[1]);
 					moment[i][nx-j-1].m[0] = moment[i][j].m[0];
 				}else{
-					moment[i][j].m[0] = 0.1;
-					moment[i][j].m[2] = 0.1;
+					moment[i][j].m[0] = 0.9;
+					moment[i][j].m[2] = 0.5;
+					// 正規化
+					double absm = sqrt(pow(moment[i][j].m[0], 2.0) + pow(moment[i][j].m[1], 2.0) + pow(moment[i][j].m[2], 2.0));
+					for (l = 0; l < 3; l++) {
+						moment[i][j].m[l] = moment[i][j].m[l]/absm;
+					}
 				}
 			}
 		}
@@ -133,7 +138,7 @@ int main(int argc, char *argv[]) {
 			//tester(1,"m");
 		}
 	}
-	tester(1,"t");
+	tester(1,"g");
 	return 0;
 }
 
