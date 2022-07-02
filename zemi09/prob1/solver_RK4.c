@@ -76,10 +76,10 @@ int main(int argc, char *argv[]) {
 		} else if (t == loops) {
 			printf("timeout\n");
 		} else if (t%plots == 0) {
-			tester(1, "f");
+			//tester(1, "f");
 		}
 	}
-	tester(2,"ml");
+	tester(3,"ftl");
 
 	return 0;
 }
@@ -254,14 +254,6 @@ int init() {
 				fqzz_i[i] = out[i][1]/N;
 			}
 		}
-
-		// 逆フーリエ変換実行
-		// printf("fftw backward\n");
-		// p = fftw_plan_dft_1d(N,out,in,FFTW_BACKWARD,FFTW_ESTIMATE);
-		// fftw_execute(p);
-		// for (i=0; i<N; i++) {
-		// 	printf("%.6e\n", in[i][0]/N);
-		// }
 	}
 	// 後始末（使用した配列等を廃棄）
 	fftw_free(in);
@@ -409,6 +401,7 @@ int HD() {
 			moment[io].Hd_std[2] += qxz*moment[is].m[0] + qzz[is-io+ib]*moment[is].m[2];
 		}
 	}
+	int i;
 
 
 	// フーリエ変換による計算
@@ -422,7 +415,6 @@ int HD() {
 	double fHd_x_i[2048];
 	double fHd_z_r[2048];
 	double fHd_z_i[2048];
-	int i;
 	int N = 2*n;
 	for (i = 0; i < N; i++) {
 		fHd_x_r[i] = fqxx_r[i]*fmoment_x_r[i] - fqxx_i[i]*fmoment_x_i[i] +
@@ -732,10 +724,11 @@ int tester(int argc, char* argv) {
 			error = error/(n*3);
 			printf("Error rate(%) = %.6e\n", error);
 			printf("-----------------------------------------\n");
+			break;
 
 		case 't':
 			ed = clock();
-			printf("#nz t(s):\n");
+			printf("#n t(s):\n");
 			printf("%d %.6e\n", n, (double)(ed-st)/CLOCKS_PER_SEC);
 			printf("-----------------------------------------\n");
 			break;
