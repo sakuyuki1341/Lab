@@ -3,13 +3,16 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include "solver_RK4.h"
+#include "qcalc.h"
+#include "fftw3.h"
 
 M_moment moment[1024];
 
 double dt = 0;
-double dy = 0;
 double dx = 0;
+double dy = 0;
 double dz = 0;
 double alpha = 0;
 double Gamma = 0;
@@ -24,65 +27,60 @@ int n = 0;
 double dn = 0;
 
 double qxx[2047];
-double qxz = 0;
 double qzz[2047];
+double qxz;
+double fqxx_r[2048];
+double fqxx_i[2048];
+double fqzz_r[2048];
+double fqzz_i[2048];
+double fqxz_r[2048];
+double fqxz_i[2048];
+
+clock_t st, ed;
 
 int main(int argc, char *argv[]) {
-	if(argc < 3) {
+	if(argc != 2) {
 		printf("the option is fault\n");
-		printf("use: ./a.exe [save, load] [Bloch, Neel]\n");
+		printf("use: ./a.exe [Bloch, Neel]\n");
 		return 0;
 	}
+	st = clock();
+
 	init();
 
 	int i, t;
-	// 平衡状態計算
-	if (strcmp(argv[1], "save") == 0) {
-	//平衡状態セーブ
-		// 初期条件設定
-		for (i = 0; i < n/2; i++) {
-			//myの設定
-			moment[i].m[1] = -(dn/2-(1+(double)i))*(2/dn) - 1/dn;
-			moment[n-i-1].m[1] = -moment[i].m[1];
-			//mzの設定
-			if (strcmp(argv[2], "Bloch") == 0) {
-				moment[i].m[2] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
-				moment[n-i-1].m[2] = moment[i].m[2];
-			}else if (strcmp(argv[2], "Neel") == 0) {
-				moment[i].m[0] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
-				moment[n-i-1].m[0] = moment[i].m[0];
-			}else{
-				printf("use second option\n[Bloch, Neel]\n");
-				return 0;
-			}
+	// 初期条件設定
+	for (i = 0; i < n/2; i++) {
+		//myの設定
+		moment[i].m[1] = -(dn/2-(1+(double)i))*(2/dn) - 1/dn;
+		moment[n-i-1].m[1] = -moment[i].m[1];
+		//mzの設定
+		if (strcmp(argv[1], "Bloch") == 0) {
+			moment[i].m[2] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
+			moment[n-i-1].m[2] = moment[i].m[2];
+		}else if (strcmp(argv[1], "Neel") == 0) {
+			moment[i].m[0] = sqrt(1-moment[i].m[1]*moment[i].m[1]);
+			moment[n-i-1].m[0] = moment[i].m[0];
+		}else{
+			printf("use option\n[Bloch, Neel]\n");
+			return 0;
 		}
-
-		// 平衡状態計算
-		for (t = 0; t < loops; t++) {
-			RK4();
-			// 収束判定
-			if (judge_break1()) {
-				break;
-			} else if (t == loops) {
-				printf("timeout\n");
-			}
-			
-		}
-		tester(2,"ml");
-
-		save_data("data.bin");
-		printf("data is saved\ncalculate ended\n");
-		return 0;
-
-	}else if (strcmp(argv[1], "load") == 0){
-		load_data("data.bin");
-		printf("data is loaded\n");
-		return 0;
-
-	}else{
-		printf("use option [save, load]\n");
-		return 0;
 	}
+
+	// 平衡状態計算
+	for (t = 0; t < loops; t++) {
+		RK4();
+		// 収束判定
+		if (judge_break1()) {
+			break;
+		} else if (t == loops) {
+			printf("timeout\n");
+		} else if (t%plots == 0) {
+			tester(1, "f");
+		}
+	}
+	tester(2,"ml");
+
 	return 0;
 }
 
@@ -189,8 +187,18 @@ int init() {
 			break;
 		}
 	}
+	fclose(fp);
 
-	// qxx, qzzの計算
+
+	// 各位置でのxの値
+	int i, j;
+	for (i = 0; i < dn/2; i++) {
+		moment[i].x = -(dn/2 - (1+(double)i))*dx - dx/2;
+		moment[n-i-1].x = -moment[i].x;
+	}
+
+
+	// 静磁界係数の計算
 	double k;
 	for (k = 0; k < n; k++) {
 		qxx[(int)k+(n-1)] = -2*M*(atan(0.5*dz/((k+0.5)*dx)) - atan(0.5*dz/((k-0.5)*dx)) - 
@@ -202,12 +210,63 @@ int init() {
 		qzz[-(int)k+(n-1)] = qzz[(int)k+(n-1)];
 	}
 
-	// 各位置でのxの値
-	int i;
-	for (i = 0; i < n/2; i++) {
-		moment[i].x = -(dn/2 - (1+(double)i))*dx - dx/2;
-		moment[n-i-1].x = -moment[i].x;
+	// 静磁界係数のフーリエ変換
+	int N = 2*n;
+	double *Y;
+	fftw_complex *in, *out;
+	fftw_plan p;
+	in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+	out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+
+	for (j=0; j<3; j++) {
+		// j:0 -> qxxの計算
+		// j:1 -> qxzの計算
+		// j:2 -> qzzの計算
+		if (j==0) {
+			Y = qxx;
+		}else if (j==2) {
+			Y = qzz;
+		}
+		// 複素配列に入力データをセット
+		for (i=0; i<N; i++) {
+			if (i==0 || j==1) {
+				in[i][0] = 0.0;
+				in[i][1] = 0.0;
+			} else {
+				in[i][0] = Y[i-1];
+				in[i][1] = 0.0;
+			}
+		}
+		// 変換実行
+		p = fftw_plan_dft_1d(N,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
+		fftw_execute(p);
+		fftw_destroy_plan(p);
+		// フーリエ変換の結果を保存
+		for (i=0; i<N; i++) {
+			if (j==0) {
+				fqxx_r[i] = out[i][0]/N;
+				fqxx_i[i] = out[i][1]/N;
+			}else if (j==1){
+				fqxz_r[i] = out[i][0]/N;
+				fqxz_i[i] = out[i][1]/N;
+			}else{
+				fqzz_r[i] = out[i][0]/N;
+				fqzz_i[i] = out[i][1]/N;
+			}
+		}
+
+		// 逆フーリエ変換実行
+		// printf("fftw backward\n");
+		// p = fftw_plan_dft_1d(N,out,in,FFTW_BACKWARD,FFTW_ESTIMATE);
+		// fftw_execute(p);
+		// for (i=0; i<N; i++) {
+		// 	printf("%.6e\n", in[i][0]/N);
+		// }
 	}
+	// 後始末（使用した配列等を廃棄）
+	fftw_free(in);
+	fftw_free(out);
+
 	return 0;
 }
 
@@ -339,16 +398,116 @@ int HA_sub(int i, int j, double* mp, double* mm) {
 }
 
 int HD() {
+	// 従来法による計算
 	int io, is;
 	int ib = n-1;
 	for (io = 0; io < n; io++) {
+		moment[io].Hd_std[0] = 0.0;
+		moment[io].Hd_std[2] = 0.0;
 		for (is = 0; is < n; is++) {
-			moment[io].H_ef[0] += qxx[is-io+ib]*moment[is].m[0] + qxz*moment[is].m[2];
-			moment[io].H_ef[2] += qxz*moment[is].m[0] 			+ qzz[is-io+ib]*moment[is].m[2];
+			moment[io].Hd_std[0] += qxx[is-io+ib]*moment[is].m[0] + qxz*moment[is].m[2];
+			moment[io].Hd_std[2] += qxz*moment[is].m[0] + qzz[is-io+ib]*moment[is].m[2];
 		}
 	}
-	
+
+
+	// フーリエ変換による計算
+	double fmoment_x_r[2048];
+	double fmoment_x_i[2048];
+	double fmoment_z_r[2048];
+	double fmoment_z_i[2048];
+	moment_fftwer('x', fmoment_x_r, fmoment_x_i);
+	moment_fftwer('z', fmoment_z_r, fmoment_z_i);
+	double fHd_x_r[2048];
+	double fHd_x_i[2048];
+	double fHd_z_r[2048];
+	double fHd_z_i[2048];
+	int i;
+	int N = 2*n;
+	for (i = 0; i < N; i++) {
+		fHd_x_r[i] = fqxx_r[i]*fmoment_x_r[i] - fqxx_i[i]*fmoment_x_i[i] +
+					fqxz_r[i]*fmoment_z_r[i] - fqxz_i[i]*fmoment_z_i[i];
+		fHd_x_i[i] = fqxx_r[i]*fmoment_x_i[i] + fqxx_i[i]*fmoment_x_r[i] +
+					fqxz_r[i]*fmoment_z_i[i] + fqxz_i[i]*fmoment_z_r[i];
+		fHd_z_r[i] = fqxz_r[i]*fmoment_x_r[i] - fqxz_i[i]*fmoment_x_i[i] +
+					fqzz_r[i]*fmoment_z_r[i] - fqzz_i[i]*fmoment_z_i[i];
+		fHd_z_i[i] = fqxz_r[i]*fmoment_x_i[i] + fqxz_i[i]*fmoment_x_r[i] +
+					fqzz_r[i]*fmoment_z_i[i] + fqzz_i[i]*fmoment_z_r[i];
+	}
+	double tmp[1024];
+	// 逆フーリエ変換(x)
+	my_fftw_bw(fHd_x_r, fHd_x_i, tmp);
+	for (i = 0; i < n; i++) {
+		moment[i].Hd_fftw[0] = tmp[i];
+	}
+	// 逆フーリエ変換(z)
+	my_fftw_bw(fHd_z_r, fHd_z_i, tmp);
+	for (i = 0; i < n; i++) {
+		moment[i].Hd_fftw[2] = tmp[i];
+	}
+
+	for (i = 0; i < n; i++) {
+		moment[i].H_ef[0] += moment[i].Hd_std[0];
+		moment[i].H_ef[2] += moment[i].Hd_std[2];
+	}
 	return 0;
+}
+
+int my_fftw_bw(double* r, double* j, double* ret) {
+	int i;
+	int N = 2*n;
+	fftw_complex *in, *out;
+	fftw_plan p;
+	in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+	out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+	// 複素数配列に入力データをセット
+	for (i=0; i<N; i++) {
+		in[i][0] = r[i];
+		in[i][1] = j[i];
+	}
+	p = fftw_plan_dft_1d(N,in,out,FFTW_BACKWARD,FFTW_ESTIMATE);
+	fftw_execute(p);
+	fftw_destroy_plan(p);
+
+	for (i=0; i<n; i++) {
+		ret[i] = out[i+n][0];
+	}
+	// 後始末（使用した配列等を廃棄）
+	fftw_free(in);
+	fftw_free(out);
+}
+
+int moment_fftwer(char target, double* fmoment_r, double* fmoment_i) {
+	int i;
+	int N = 2*n;
+	fftw_complex *in, *out;
+	fftw_plan p;
+	in = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+	out = (fftw_complex*)fftw_malloc(sizeof(fftw_complex)*N);
+	// 複素数配列に入力データをセット
+	for (i=0; i<N; i++) {
+		if (i >= n) {
+			in[i][0] = 0.0;
+		}else if(target=='x'){
+			in[i][0] = moment[i].m[0];
+		}else if(target=='y'){
+			in[i][0] = moment[i].m[1];
+		}else if(target=='z'){
+			in[i][0] = moment[i].m[2];
+		}
+		in[i][1] = 0.0;
+	}
+	// フーリエ変換開始
+	p = fftw_plan_dft_1d(N,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
+	fftw_execute(p);
+	fftw_destroy_plan(p);
+	for (i=0; i<N; i++) {
+		fmoment_r[i] = out[i][0];
+		fmoment_i[i] = out[i][1];
+	}
+	// 後始末（使用した配列等を廃棄）
+	fftw_free(in);
+	fftw_free(out);
 }
 
 
@@ -439,7 +598,8 @@ double calc_lw() {
 //	・qx: qxxの出力
 //	・qz: qzzの出力
 int tester(int argc, char* argv) {
-	int i, j;
+	int i, j, k;
+	double error = 0.0;
 	for (i = 0; i < argc; i++) {
 		switch (argv[i]) {
 		case 'c':
@@ -556,64 +716,32 @@ int tester(int argc, char* argv) {
 			printf("-----------------------------------------\n");
 			break;
 
-		case 'l':;
+		case 'l':
 			// 磁壁の中心を挟む二点から傾きを求める->磁壁を求める。
 			printf("simlw(nm) = %.6e\n", calc_lw()*1e7);
 			printf("-----------------------------------------\n");
 			break;
 
-/*	調整中
-		case 't':
-			printf("x, theta:\n");
-			for (i = 0; i < interval*region; i++) {
-				double x = ((double)i-interval)*dx + dx/2;
-				double theta = acos(moment[i].m[2]);
-				printf("%.8lf %lf\n", x, theta);
+		case 'f':
+			// fftwと通常計算のHdの誤差率を計算する
+			for (j = 0; j < n; j++) {
+				for (k = 0; k < 3; k++) {
+					error = 100*(moment[j].Hd_fftw[k] - moment[j].Hd_std[k])/moment[j].Hd_std[k];
+				}
 			}
+			error = error/(n*3);
+			printf("Error rate(%) = %.6e\n", error);
+			printf("-----------------------------------------\n");
+
+		case 't':
+			ed = clock();
+			printf("#nz t(s):\n");
+			printf("%d %.6e\n", n, (double)(ed-st)/CLOCKS_PER_SEC);
 			printf("-----------------------------------------\n");
 			break;
-*/
 
 		default:
 			break;
 		}
 	}
-}
-
-// データファイル書き込み関数
-int save_data(char* filename) {
-	FILE *to;
-	double buf[3072];
-	int i, j;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			buf[3*i + j] = moment[i].m[j];
-		}
-	}
-
-	to = fopen(filename, "wb");
-	fwrite(buf, sizeof(double), 3072, to);
-	fclose(to);
-
-	return 0;
-}
-
-// ---------------------------------------
-//	入力用関数
-// ---------------------------------------
-// データファイル読み込み関数
-int load_data(char* filename) {
-	FILE *from;
-	double buf[3072];
-	from = fopen(filename, "rb");
-	fread(buf, sizeof(double), 3072, from);
-	fclose(from);
-	
-	int i, j;
-	for (i = 0; i < n; i++) {
-		for (j = 0; j < 3; j++) {
-			moment[i].m[j] = buf[3*i + j];
-		}
-	}
-	return 0;
 }
