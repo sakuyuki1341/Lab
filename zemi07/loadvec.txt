@@ -14,7 +14,7 @@ set ytic offset 0,0
 
 # メモリの間隔
 #set xtics 25
-set ytics 25
+set ytics 3
 
 # グリッドの表示
 set grid
@@ -34,7 +34,7 @@ set bmargin 8
 
 # 軸の範囲を設定
 #set xrange [0:0.01]
-#set yrange [-1:1]
+#set yrange [-8:8]
 
 
 # 以下で軸名の設定
