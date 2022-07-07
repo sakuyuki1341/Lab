@@ -1,4 +1,4 @@
-This is e-pTeX, Version 3.14159265-p3.8.1-180226-2.6 (utf8.sjis) (TeX Live 2018/W32TeX) (preloaded format=platex 2018.6.11)  25 JUN 2022 23:08
+This is e-pTeX, Version 3.14159265-p3.8.1-180226-2.6 (utf8.sjis) (TeX Live 2018/W32TeX) (preloaded format=platex 2018.6.11)  7 JUL 2022 16:36
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -849,14 +849,17 @@ File: ts1ntxtlf.fd 2015/01/18 v1.0 fd file for TS1/ntxtlf
 )
 LaTeX Font Info:    Font shape `TS1/ntxtlf/m/n' will be
 (Font)              scaled to size 10.0pt on input line 109.
+File: pic04.eps Graphic file (type eps)
+<pic04.eps>
+ [3]
 File: tab01_1.eps Graphic file (type eps)
 <tab01_1.eps>
 LaTeX Font Info:    Font shape `JT1/mc/m/n' will be
-(Font)              scaled to size 8.64899pt on input line 140.
+(Font)              scaled to size 8.64899pt on input line 147.
 LaTeX Font Info:    Font shape `JY1/mc/m/n' will be
-(Font)              scaled to size 8.64899pt on input line 140.
+(Font)              scaled to size 8.64899pt on input line 147.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 9.0pt on input line 140.
+(Font)              scaled to size 9.0pt on input line 147.
 File: tab01_2.eps Graphic file (type eps)
 <tab01_2.eps>
 File: tab01_3.eps Graphic file (type eps)
@@ -867,7 +870,7 @@ File: tab01_5.eps Graphic file (type eps)
 <tab01_5.eps>
 File: tab01_6.eps Graphic file (type eps)
 <tab01_6.eps>
- [3] [4]
+ [4]
 File: tab02_1.eps Graphic file (type eps)
 <tab02_1.eps>
 File: tab02_2.eps Graphic file (type eps)
@@ -882,15 +885,15 @@ File: pic03.eps Graphic file (type eps)
 <pic03.eps>
  [6]
 LaTeX Font Info:    Font shape `JT1/mc/m/it' in size <10> not available
-(Font)              Font shape `JT1/mc/m/n' tried instead on input line 259.
+(Font)              Font shape `JT1/mc/m/n' tried instead on input line 266.
 LaTeX Font Info:    Font shape `JT1/mc/m/n' will be
-(Font)              scaled to size 9.60999pt on input line 259.
+(Font)              scaled to size 9.60999pt on input line 266.
 LaTeX Font Info:    Font shape `JY1/mc/m/it' in size <10> not available
-(Font)              Font shape `JY1/mc/m/n' tried instead on input line 259.
+(Font)              Font shape `JY1/mc/m/n' tried instead on input line 266.
 LaTeX Font Info:    Font shape `JY1/mc/m/n' will be
-(Font)              scaled to size 9.60999pt on input line 259.
+(Font)              scaled to size 9.60999pt on input line 266.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/it' will be
-(Font)              scaled to size 10.0pt on input line 259.
+(Font)              scaled to size 10.0pt on input line 266.
  [7] (./report08.aux)
 
 LaTeX Font Warning: Size substitutions with differences
@@ -898,12 +901,12 @@ LaTeX Font Warning: Size substitutions with differences
 
  ) 
 Here is how much of TeX's memory you used:
- 8350 strings out of 493273
- 116348 string characters out of 6148004
+ 8354 strings out of 493273
+ 116395 string characters out of 6148004
  217592 words of memory out of 5000000
- 12094 multiletter control sequences out of 15000+600000
+ 12097 multiletter control sequences out of 15000+600000
  61670 words of font info for 137 fonts, out of 8000000 for 9000
  934 hyphenation exceptions out of 8191
  59i,9n,97p,851b,656s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on report08.dvi (7 pages, 17592 bytes).
+Output written on report08.dvi (7 pages, 17864 bytes).
